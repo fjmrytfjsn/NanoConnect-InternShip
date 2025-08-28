@@ -1116,3 +1116,316 @@ export class JoinPresentationUseCase {
   }
 }
 ```
+
+### **3.3 インフラ層詳細設計**
+
+#### **3.3.1 リポジトリ実装**
+
+**SQLitePresentationRepository**
+```typescript
+// src/infrastructure/database/repositories/SQLitePresentationRepository.ts
+import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
+import { Presentation } from '@/domain/entities/Presentation';
+import { SQLiteConnection } from '../SQLiteConnection';
+
+export class SQLitePresentationRepository implements IPresentationRepository {
+  constructor(private readonly db: SQLiteConnection) {}
+
+  async save(presentation: Presentation): Promise<Presentation> {
+    const stmt = this.db.prepare(`
+      INSERT INTO presentations (title, description, presenter_id, access_code, is_active, current_slide_index)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    
+    const result = stmt.run(
+      presentation.title,
+      presentation.description,
+      presentation.presenterId,
+      presentation.accessCode.value,
+      presentation.isActive,
+      presentation.currentSlideIndex
+    );
+
+    // 保存されたPresentationを返却
+    return this.findById(result.lastInsertRowid as number) as Promise<Presentation>;
+  }
+
+  async findById(id: number): Promise<Presentation | null> {
+    const stmt = this.db.prepare(`
+      SELECT * FROM presentations WHERE id = ?
+    `);
+    const row = stmt.get(id);
+    
+    if (!row) return null;
+    
+    return Presentation.fromDatabase(row);
+  }
+
+  async findByAccessCode(accessCode: string): Promise<Presentation | null> {
+    const stmt = this.db.prepare(`
+      SELECT * FROM presentations WHERE access_code = ?
+    `);
+    const row = stmt.get(accessCode);
+    
+    if (!row) return null;
+    
+    return Presentation.fromDatabase(row);
+  }
+
+  async findActiveByPresenterId(presenterId: number): Promise<Presentation[]> {
+    const stmt = this.db.prepare(`
+      SELECT * FROM presentations WHERE presenter_id = ? AND is_active = true
+    `);
+    const rows = stmt.all(presenterId);
+    
+    return rows.map(row => Presentation.fromDatabase(row));
+  }
+
+  async update(presentation: Presentation): Promise<void> {
+    const stmt = this.db.prepare(`
+      UPDATE presentations 
+      SET title = ?, description = ?, is_active = ?, current_slide_index = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    
+    stmt.run(
+      presentation.title,
+      presentation.description,
+      presentation.isActive,
+      presentation.currentSlideIndex,
+      new Date().toISOString(),
+      presentation.id
+    );
+  }
+
+  async delete(id: number): Promise<void> {
+    const stmt = this.db.prepare(`DELETE FROM presentations WHERE id = ?`);
+    stmt.run(id);
+  }
+}
+```
+
+## **4. フロントエンド詳細設計（React + TypeScript）**
+
+### **4.1 コンポーネント設計**
+
+#### **4.1.1 共通コンポーネント**
+
+**Header コンポーネント**
+```typescript
+// src/components/common/Header/Header.tsx
+import React from 'react';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '@/store/slices/authSlice';
+import { RootState } from '@/store';
+
+interface HeaderProps {
+  title?: string;
+  showAuthButtons?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ 
+  title = 'NanoConnect', 
+  showAuthButtons = true 
+}) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
+      <Toolbar>
+        <Typography 
+          variant="h6" 
+          component="div" 
+          sx={{ flexGrow: 1, cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
+          {title}
+        </Typography>
+
+        {showAuthButtons && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {isAuthenticated ? (
+              <>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    display: { xs: 'none', sm: 'block' },
+                    alignSelf: 'center',
+                    mr: 2
+                  }}
+                >
+                  {user?.username}
+                </Typography>
+                <Button 
+                  color="inherit" 
+                  onClick={handleDashboard}
+                  sx={{ display: { xs: 'none', sm: 'block' } }}
+                >
+                  ダッシュボード
+                </Button>
+                <Button color="inherit" onClick={handleLogout}>
+                  ログアウト
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button color="inherit" onClick={handleLogin}>
+                  ログイン
+                </Button>
+                <Button 
+                  color="inherit" 
+                  onClick={handleRegister}
+                  sx={{ display: { xs: 'none', sm: 'block' } }}
+                >
+                  新規登録
+                </Button>
+              </>
+            )}
+          </Box>
+        )}
+      </Toolbar>
+    </AppBar>
+  );
+};
+```
+
+## **5. データベース詳細設計とマイグレーション**
+
+### **5.1 SQLite マイグレーション**
+
+```sql
+-- 001_create_users.sql
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+```
+
+```sql
+-- 002_create_presentations.sql
+CREATE TABLE presentations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  presenter_id INTEGER NOT NULL,
+  access_code TEXT UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT FALSE,
+  current_slide_index INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (presenter_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_presentations_access_code ON presentations(access_code);
+CREATE INDEX idx_presentations_presenter_id ON presentations(presenter_id);
+CREATE INDEX idx_presentations_is_active ON presentations(is_active);
+```
+
+## **6. 実装フェーズ計画**
+
+### **6.1 Phase 1: 基盤構築（1-2週間）**
+
+#### **Week 1: バックエンド基盤**
+- [ ] プロジェクト構造セットアップ
+- [ ] TypeScript設定とビルド環境
+- [ ] SQLiteデータベーススキーマ実装
+- [ ] DDDアーキテクチャ基盤クラス実装
+- [ ] 基本的なエンティティ（User, Presentation）実装
+
+#### **Week 2: フロントエンド基盤**
+- [ ] Vite + React + TypeScriptセットアップ
+- [ ] Material-UI テーマ設定
+- [ ] Redux Toolkit設定
+- [ ] ルーティング設定
+- [ ] 基本的なレイアウトコンポーネント実装
+
+### **6.2 Phase 2: 認証機能（1週間）**
+
+- [ ] JWT認証システム実装
+- [ ] ユーザー登録・ログイン API
+- [ ] 認証ミドルウェア実装
+- [ ] フロントエンド認証UI
+- [ ] 認証状態管理（Redux）
+- [ ] 単体テスト（認証機能）
+
+### **6.3 Phase 3: プレゼンテーション基本機能（2週間）**
+
+#### **Week 1: プレゼンテーション管理**
+- [ ] プレゼンテーションCRUD API
+- [ ] アクセスコード生成システム
+- [ ] プレゼンター向けダッシュボード
+- [ ] プレゼンテーション作成・編集UI
+
+#### **Week 2: スライド管理**
+- [ ] スライドCRUD API
+- [ ] スライドエディタコンポーネント
+- [ ] 多肢選択式・ワードクラウドスライド
+- [ ] スライド順序管理
+
+### **6.4 Phase 4: リアルタイム機能（2週間）**
+
+#### **Week 1: WebSocket基盤**
+- [ ] Socket.IO サーバー実装
+- [ ] 名前空間・Room設計実装
+- [ ] プレゼンター向けWebSocketハンドラ
+- [ ] 参加者向けWebSocketハンドラ
+
+#### **Week 2: リアルタイム投票**
+- [ ] 参加者参加システム
+- [ ] リアルタイム投票機能
+- [ ] 重複回答防止システム
+- [ ] リアルタイムデータ可視化
+
+### **6.5 Phase 5: データ可視化とUX向上（1週間）**
+
+- [ ] Chart.js投票結果グラフ
+- [ ] react-wordcloudワードクラウド
+- [ ] レスポンシブデザイン最適化
+- [ ] ローディング・エラー状態改善
+- [ ] アクセシビリティ対応
+
+### **6.6 Phase 6: テストとデプロイメント（1週間）**
+
+- [ ] 単体テスト網羅性向上
+- [ ] 結合テスト実装
+- [ ] E2Eテスト実装
+- [ ] WebContainer環境最適化
+- [ ] パフォーマンス最適化
+- [ ] 本番デプロイメント準備
+
+---
+
+**文書バージョン**: 1.0  
+**作成日**: 2024年1月15日  
+**最終更新**: 2024年1月15日  
+**文書ステータス**: 完成
+
+この詳細設計書は、製品仕様書・要求仕様書・方式設計書に基づいて作成されており、実装者が直接コーディングを開始できるレベルの具体性を持っています。DDD設計原則、TypeScript型安全性、レスポンシブデザイン、WebContainer環境対応を重視した設計となっています。
