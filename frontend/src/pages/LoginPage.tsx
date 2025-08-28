@@ -34,9 +34,13 @@ export const LoginPage: React.FC = () => {
           <Typography variant="h4" component="h1" gutterBottom align="center">
             ログイン
           </Typography>
-          
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -64,11 +68,7 @@ export const LoginPage: React.FC = () => {
             >
               ログイン
             </Button>
-            <Button
-              fullWidth
-              variant="text"
-              color="primary"
-            >
+            <Button fullWidth variant="text" color="primary">
               アカウントを作成
             </Button>
           </Box>

@@ -15,8 +15,14 @@ export const HomePage: React.FC = () => {
       <Typography variant="h2" component="h1" gutterBottom align="center">
         NanoConnect へようこそ
       </Typography>
-      
-      <Typography variant="h6" component="p" align="center" color="text.secondary" mb={4}>
+
+      <Typography
+        variant="h6"
+        component="p"
+        align="center"
+        color="text.secondary"
+        mb={4}
+      >
         リアルタイムインタラクティブプレゼンテーションを作成・参加できるプラットフォーム
       </Typography>
 
@@ -24,7 +30,9 @@ export const HomePage: React.FC = () => {
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center', p: 3 }}>
-              <PlayCircleOutline sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+              <PlayCircleOutline
+                sx={{ fontSize: 48, color: 'primary.main', mb: 2 }}
+              />
               <Typography variant="h5" component="h2" gutterBottom>
                 プレゼンテーションを作成
               </Typography>
@@ -41,7 +49,9 @@ export const HomePage: React.FC = () => {
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center', p: 3 }}>
-              <PersonAdd sx={{ fontSize: 48, color: 'secondary.main', mb: 2 }} />
+              <PersonAdd
+                sx={{ fontSize: 48, color: 'secondary.main', mb: 2 }}
+              />
               <Typography variant="h5" component="h2" gutterBottom>
                 プレゼンテーションに参加
               </Typography>

@@ -10,16 +10,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      >
         <Header />
-        <Container 
-          component="main" 
-          maxWidth="lg" 
-          sx={{ 
-            flexGrow: 1, 
+        <Container
+          component="main"
+          maxWidth="lg"
+          sx={{
+            flexGrow: 1,
             py: 3,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
           }}
         >
           {children}
