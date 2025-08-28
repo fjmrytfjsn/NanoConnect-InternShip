@@ -49,20 +49,25 @@
 ### **2.2 技術スタック**
 
 #### **フロントエンド**
-- **Framework**: React.js 18.x
-- **State Management**: Redux Toolkit
-- **UI Library**: Material-UI (MUI)
-- **リアルタイム通信**: Socket.IO Client
-- **Chart Library**: Chart.js / Recharts
-- **Word Cloud**: react-wordcloud
+- **Language**: TypeScript 5.x
+- **Framework**: React.js 18.x with TypeScript
+- **State Management**: Redux Toolkit with TypeScript
+- **UI Library**: Material-UI (MUI) with TypeScript
+- **リアルタイム通信**: Socket.IO Client with TypeScript
+- **Chart Library**: Chart.js / Recharts with TypeScript
+- **Word Cloud**: react-wordcloud with TypeScript
+- **Type Checking**: TypeScript strict mode
+- **Build Tool**: Vite with TypeScript
 
 #### **バックエンド**
-- **Runtime**: Node.js 18.x
-- **Framework**: Express.js
-- **リアルタイム通信**: Socket.IO
-- **認証**: JWT (JSON Web Tokens)
-- **バリデーション**: Joi
-- **ロギング**: Winston
+- **Language**: TypeScript 5.x
+- **Runtime**: Node.js 18.x with TypeScript
+- **Framework**: Express.js with TypeScript
+- **リアルタイム通信**: Socket.IO with TypeScript
+- **認証**: JWT (JSON Web Tokens) with TypeScript types
+- **バリデーション**: Joi with TypeScript schemas
+- **ロギング**: Winston with TypeScript
+- **Build Tool**: tsc (TypeScript Compiler)
 
 #### **データベース**
 - **メインDB**: MongoDB 6.x
@@ -75,7 +80,76 @@
 - **Orchestration**: Docker Compose
 - **Monitoring**: PM2, New Relic
 
-### **2.3 設計パターン**
+#### **TypeScript 設定**
+- **TypeScript Version**: 5.x
+- **Target**: ES2020
+- **Module**: ES2020
+- **Strict Mode**: Enabled
+- **Path Mapping**: Enabled
+- **Declaration Files**: Generated for libraries
+
+### **2.3 TypeScript 設定詳細**
+
+#### **tsconfig.json (Backend)**
+```typescript
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
+```
+
+#### **tsconfig.json (Frontend)**
+```typescript
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["DOM", "DOM.Iterable", "ES6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
+```
+
+### **2.4 設計パターン**
 
 - **MVC アーキテクチャ**: Express.jsによる階層化
 - **Repository パターン**: データアクセス層の抽象化
@@ -84,102 +158,122 @@
 
 ## **3. データベース設計**
 
-### **3.1 MongoDB スキーマ設計**
+### **3.1 共通型定義**
+
+```typescript
+// MongoDB ObjectId type
+import { ObjectId } from 'mongodb';
+
+// Common types
+type SlideType = 'multiple_choice' | 'word_cloud';
+type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+
+// Utility types
+interface BaseEntity {
+  _id: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TimestampedEntity {
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### **3.2 MongoDB スキーマ設計**
 
 #### **Users Collection**
-```javascript
-{
-  _id: ObjectId,
-  username: String, // unique
-  email: String, // unique
-  passwordHash: String,
-  createdAt: Date,
-  updatedAt: Date
+```typescript
+interface User extends BaseEntity {
+  username: string; // unique
+  email: string; // unique
+  passwordHash: string;
 }
 ```
 
 #### **Presentations Collection**
-```javascript
-{
-  _id: ObjectId,
-  title: String,
-  description: String,
-  presenterId: ObjectId, // reference to Users
-  accessCode: String, // 6-digit unique code
-  slides: [
-    {
-      _id: ObjectId,
-      type: String, // "multiple_choice" | "word_cloud"
-      title: String,
-      question: String,
-      options: [String], // for multiple choice only
-      order: Number
-    }
-  ],
-  isActive: Boolean,
-  currentSlideIndex: Number,
-  createdAt: Date,
-  updatedAt: Date
+```typescript
+interface Slide {
+  _id: ObjectId;
+  type: SlideType;
+  title: string;
+  question: string;
+  options?: string[]; // for multiple choice only
+  order: number;
+}
+
+interface Presentation extends BaseEntity {
+  title: string;
+  description: string;
+  presenterId: ObjectId; // reference to Users
+  accessCode: string; // 6-digit unique code
+  slides: Slide[];
+  isActive: boolean;
+  currentSlideIndex: number;
 }
 ```
 
 #### **Responses Collection**
-```javascript
-{
-  _id: ObjectId,
-  presentationId: ObjectId,
-  slideId: ObjectId,
-  sessionId: String, // to prevent duplicate responses
-  ipAddress: String, // for duplicate prevention
-  responseData: {
-    // For multiple choice
-    selectedOption: String,
-    // For word cloud
-    text: String
-  },
-  timestamp: Date
+```typescript
+interface ResponseData {
+  // For multiple choice
+  selectedOption?: string;
+  // For word cloud
+  text?: string;
+}
+
+interface Response extends BaseEntity {
+  presentationId: ObjectId;
+  slideId: ObjectId;
+  sessionId: string; // to prevent duplicate responses
+  ipAddress: string; // for duplicate prevention
+  responseData: ResponseData;
+  timestamp: Date;
 }
 ```
 
 #### **Sessions Collection**
-```javascript
-{
-  _id: ObjectId,
-  sessionId: String, // unique
-  presentationId: ObjectId,
-  participantCount: Number,
-  joinedAt: Date,
-  lastActivity: Date
+```typescript
+interface Session extends BaseEntity {
+  sessionId: string; // unique
+  presentationId: ObjectId;
+  participantCount: number;
+  joinedAt: Date;
+  lastActivity: Date;
 }
 ```
 
-### **3.2 Redis スキーマ設計**
+### **3.3 Redis スキーマ設計**
 
 #### **セッション管理**
-```
-session:{sessionId} -> {
-  presentationId: String,
-  joinedAt: timestamp,
-  lastActivity: timestamp
+```typescript
+interface RedisSession {
+  presentationId: string;
+  joinedAt: number; // timestamp
+  lastActivity: number; // timestamp
 }
+// Key: session:{sessionId}
 ```
 
 #### **アクティブプレゼンテーション**
-```
-active_presentation:{accessCode} -> {
-  presentationId: String,
-  presenterId: String,
-  currentSlide: Number,
-  participantCount: Number
+```typescript
+interface RedisActivePresentation {
+  presentationId: string;
+  presenterId: string;
+  currentSlide: number;
+  participantCount: number;
 }
+// Key: active_presentation:{accessCode}
 ```
 
 #### **リアルタイムデータ**
-```
-realtime:{presentationId}:{slideId} -> {
-  responses: JSON,
-  updatedAt: timestamp
+```typescript
+interface RedisRealtimeData {
+  responses: any; // JSON data
+  updatedAt: number; // timestamp
 }
+// Key: realtime:{presentationId}:{slideId}
 ```
 
 ## **4. API設計**
@@ -225,33 +319,163 @@ GET /api/presentations/:id/analytics      # 集計データ取得
 GET /api/presentations/:id/export        # データエクスポート
 ```
 
-### **4.2 WebSocket イベント設計**
+### **4.2 API リクエスト・レスポンス型定義**
+
+#### **認証 API 型**
+```typescript
+// Registration
+interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface RegisterResponse {
+  message: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
+// Login
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+interface LoginResponse {
+  message: string;
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+```
+
+#### **プレゼンテーション API 型**
+```typescript
+// Create Presentation
+interface CreatePresentationRequest {
+  title: string;
+  description?: string;
+}
+
+interface CreatePresentationResponse {
+  message: string;
+  presentation: Presentation;
+}
+
+// Join Presentation
+interface JoinPresentationRequest {
+  accessCode: string;
+}
+
+interface JoinPresentationResponse {
+  message: string;
+  sessionId: string;
+  presentation: {
+    id: string;
+    title: string;
+    currentSlide: Slide;
+  };
+}
+
+// Submit Response
+interface SubmitResponseRequest {
+  slideId: string;
+  sessionId: string;
+  responseData: ResponseData;
+}
+
+interface SubmitResponseResponse {
+  message: string;
+  success: boolean;
+}
+```
+
+#### **分析 API 型**
+```typescript
+interface AnalyticsResponse {
+  presentationId: string;
+  totalResponses: number;
+  slideAnalytics: Array<{
+    slideId: string;
+    slideTitle: string;
+    responseCount: number;
+    data: any; // Specific to slide type
+  }>;
+}
+```
+
+### **4.3 WebSocket イベント設計**
 
 #### **プレゼンター向けイベント**
-```javascript
+```typescript
 // 送信イベント
-'slide_change' -> { slideIndex: number }
-'presentation_start' -> { presentationId: string }
-'presentation_stop' -> { presentationId: string }
+interface SlideChangeEvent {
+  slideIndex: number;
+}
+
+interface PresentationStartEvent {
+  presentationId: string;
+}
+
+interface PresentationStopEvent {
+  presentationId: string;
+}
 
 // 受信イベント
-'participant_joined' -> { count: number }
-'participant_left' -> { count: number }
-'new_response' -> { slideId: string, response: object }
-'realtime_update' -> { slideId: string, data: object }
+interface ParticipantJoinedEvent {
+  count: number;
+}
+
+interface ParticipantLeftEvent {
+  count: number;
+}
+
+interface NewResponseEvent {
+  slideId: string;
+  response: ResponseData;
+}
+
+interface RealtimeUpdateEvent {
+  slideId: string;
+  data: any;
+}
 ```
 
 #### **参加者向けイベント**
-```javascript
+```typescript
 // 送信イベント
-'join_presentation' -> { accessCode: string, sessionId: string }
-'submit_response' -> { slideId: string, response: object }
+interface JoinPresentationEvent {
+  accessCode: string;
+  sessionId: string;
+}
+
+interface SubmitResponseEvent {
+  slideId: string;
+  response: ResponseData;
+}
 
 // 受信イベント
-'presentation_joined' -> { presentationId: string, currentSlide: object }
-'slide_changed' -> { slide: object }
-'presentation_ended' -> {}
-'realtime_update' -> { data: object }
+interface PresentationJoinedEvent {
+  presentationId: string;
+  currentSlide: Slide;
+}
+
+interface SlideChangedEvent {
+  slide: Slide;
+}
+
+interface PresentationEndedEvent {}
+
+interface ParticipantRealtimeUpdateEvent {
+  data: any;
+}
 ```
 
 ## **5. リアルタイム通信設計**
@@ -259,27 +483,27 @@ GET /api/presentations/:id/export        # データエクスポート
 ### **5.1 Socket.IO 実装**
 
 #### **名前空間設計**
-```javascript
+```typescript
 // プレゼンター用
-/presenter
+// Namespace: /presenter
 
 // 参加者用  
-/participant
+// Namespace: /participant
 
 // 管理用
-/admin
+// Namespace: /admin
 ```
 
 #### **Room設計**
-```javascript
+```typescript
 // プレゼンテーションごとのRoom
-presentation-{presentationId}
+type PresentationRoom = `presentation-${string}`;
 
 // スライドごとのRoom
-slide-{slideId}
+type SlideRoom = `slide-${string}`;
 
 // プレゼンター専用Room
-presenter-{presenterId}
+type PresenterRoom = `presenter-${string}`;
 ```
 
 ### **5.2 リアルタイムデータフロー**
@@ -405,20 +629,31 @@ db.responses.createIndex({ "timestamp": 1 })
 - **DEBUG**: 開発・デバッグ情報
 
 #### **構造化ログ**
-```javascript
-{
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "level": "INFO",
-  "service": "nanoconnect-api",
-  "userId": "user-123",
-  "presentationId": "pres-456",
-  "action": "slide_change",
-  "metadata": {
-    "from": 0,
-    "to": 1,
-    "participantCount": 45
-  }
+```typescript
+interface LogEntry {
+  timestamp: string; // ISO 8601 format
+  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+  service: string;
+  userId?: string;
+  presentationId?: string;
+  action: string;
+  metadata?: Record<string, any>;
 }
+
+// Example log entry
+const logExample: LogEntry = {
+  timestamp: "2024-01-15T10:30:00.000Z",
+  level: "INFO",
+  service: "nanoconnect-api",
+  userId: "user-123",
+  presentationId: "pres-456",
+  action: "slide_change",
+  metadata: {
+    from: 0,
+    to: 1,
+    participantCount: 45
+  }
+};
 ```
 
 ### **8.2 監視・アラート**
@@ -439,15 +674,23 @@ db.responses.createIndex({ "timestamp": 1 })
 
 ### **9.1 Docker化**
 
-#### **Dockerfile (Node.js App)**
+#### **Dockerfile (Node.js App with TypeScript)**
 ```dockerfile
-FROM node:18-alpine
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm ci
+COPY src/ ./src/
+RUN npm run build
+
+FROM node:18-alpine AS production
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
-COPY . .
+COPY --from=builder /app/dist ./dist
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
 ```
 
 #### **docker-compose.yml**
@@ -564,6 +807,107 @@ services:
 - 包括的なテストカバレッジ
 - ドキュメントの自動生成
 - CI/CD パイプラインの構築
+
+## **12. TypeScript 開発ワークフロー**
+
+### **12.1 開発環境セットアップ**
+
+#### **必要なパッケージ (Backend)**
+```json
+{
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.13",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "nodemon": "^2.0.22",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0"
+  }
+}
+```
+
+#### **必要なパッケージ (Frontend)**
+```json
+{
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+### **12.2 開発コマンド**
+
+#### **Backend 開発コマンド**
+```bash
+# TypeScript コンパイル
+npm run build        # tsc
+
+# 開発モード (ホットリロード)
+npm run dev          # nodemon --exec ts-node src/index.ts
+
+# 型チェック
+npm run type-check   # tsc --noEmit
+
+# Lint
+npm run lint         # eslint src/**/*.ts
+
+# テスト
+npm run test         # jest --preset ts-jest
+```
+
+#### **Frontend 開発コマンド**
+```bash
+# 開発モード
+npm run dev          # vite
+
+# ビルド
+npm run build        # tsc && vite build
+
+# 型チェック
+npm run type-check   # tsc --noEmit
+
+# Lint
+npm run lint         # eslint src/**/*.{ts,tsx}
+```
+
+### **12.3 型安全性の確保**
+
+#### **Strict TypeScript 設定**
+- `strict: true` - 全ての厳密チェックを有効
+- `noImplicitAny: true` - 暗黙的なany型を禁止
+- `strictNullChecks: true` - null/undefined チェック
+- `noImplicitReturns: true` - 明示的なreturn必須
+
+#### **型チェックのCI/CD統合**
+```yaml
+# GitHub Actions example
+- name: TypeScript Type Check
+  run: |
+    npm run type-check
+    npm run lint
+```
+
+### **12.4 コード生成とスキーマ同期**
+
+#### **API型の自動生成**
+```bash
+# OpenAPI スキーマから TypeScript 型を生成
+npm run generate-types  # openapi-generator generate
+```
+
+#### **データベーススキーマ同期**
+```bash
+# MongoDB スキーマから TypeScript 型を生成
+npm run generate-db-types  # custom script
+```
 
 ## **13. 要件トレーサビリティマトリックス**
 
