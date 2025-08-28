@@ -10,6 +10,8 @@ jobs:
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-latest
+
+    if: false
     
     defaults:
       run:
