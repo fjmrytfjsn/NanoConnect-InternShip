@@ -49,7 +49,10 @@ interface MockResponseData {
 }
 
 // モックデータ生成
-const generateMockData = (type: SlideType, content: SlideContent): MockResponseData => {
+const generateMockData = (
+  type: SlideType,
+  content: SlideContent
+): MockResponseData => {
   if (type === 'multiple_choice') {
     const mockData: { [option: string]: number } = {};
     content.options?.forEach((option) => {
@@ -58,11 +61,24 @@ const generateMockData = (type: SlideType, content: SlideContent): MockResponseD
     return { multipleChoice: mockData, wordCloud: {} };
   } else {
     const mockWords = [
-      '革新', '成長', '協力', '挑戦', '品質', '効率', '創造', '信頼',
-      '顧客', '価値', '技術', '発展', '改善', '成功', '未来',
+      '革新',
+      '成長',
+      '協力',
+      '挑戦',
+      '品質',
+      '効率',
+      '創造',
+      '信頼',
+      '顧客',
+      '価値',
+      '技術',
+      '発展',
+      '改善',
+      '成功',
+      '未来',
     ];
     const wordCloud: { [word: string]: number } = {};
-    mockWords.forEach(word => {
+    mockWords.forEach((word) => {
       wordCloud[word] = Math.floor(Math.random() * 20) + 5;
     });
     return { multipleChoice: {}, wordCloud };
@@ -75,8 +91,8 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   title,
   mockData = true,
 }) => {
-  const mockResponseData = useMemo(() => 
-    mockData ? generateMockData(type, content) : null,
+  const mockResponseData = useMemo(
+    () => (mockData ? generateMockData(type, content) : null),
     [type, content, mockData]
   );
 
@@ -88,7 +104,11 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     return (
       <Box>
         {/* 質問表示 */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ fontWeight: 'bold', mb: 3 }}
+        >
           {content.question || '質問を入力してください'}
         </Typography>
 
@@ -97,7 +117,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
           <Typography variant="subtitle2" gutterBottom color="primary">
             参加者画面プレビュー
           </Typography>
-          
+
           {allowMultiple ? (
             <Box>
               {options.map((option, index) => (
@@ -123,11 +143,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             </RadioGroup>
           )}
 
-          <Button 
-            variant="contained" 
-            sx={{ mt: 2 }}
-            disabled
-          >
+          <Button variant="contained" sx={{ mt: 2 }} disabled>
             投票する
           </Button>
         </Paper>
@@ -138,7 +154,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             <Typography variant="subtitle2" gutterBottom color="secondary">
               結果表示プレビュー（サンプルデータ）
             </Typography>
-            
+
             <Box sx={{ height: 300, mt: 2 }}>
               <Bar
                 data={{
@@ -146,7 +162,9 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                   datasets: [
                     {
                       label: '投票数',
-                      data: options.map(option => mockResponseData.multipleChoice[option] || 0),
+                      data: options.map(
+                        (option) => mockResponseData.multipleChoice[option] || 0
+                      ),
                       backgroundColor: 'rgba(54, 162, 235, 0.8)',
                       borderColor: 'rgba(54, 162, 235, 1)',
                       borderWidth: 1,
@@ -176,9 +194,13 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                 }}
               />
             </Box>
-            
+
             <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-              総投票数: {Object.values(mockResponseData.multipleChoice).reduce((sum, count) => sum + count, 0)}
+              総投票数:{' '}
+              {Object.values(mockResponseData.multipleChoice).reduce(
+                (sum, count) => sum + count,
+                0
+              )}
             </Typography>
           </Paper>
         )}
@@ -192,7 +214,11 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     return (
       <Box>
         {/* 質問表示 */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ fontWeight: 'bold', mb: 3 }}
+        >
           {content.question || '質問を入力してください'}
         </Typography>
 
@@ -201,7 +227,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
           <Typography variant="subtitle2" gutterBottom color="primary">
             参加者画面プレビュー
           </Typography>
-          
+
           <TextField
             placeholder="あなたの回答を入力してください..."
             multiline
@@ -211,15 +237,12 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             sx={{ mb: 2 }}
             disabled
           />
-          
+
           <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
             50文字以内で入力してください
           </Typography>
-          
-          <Button 
-            variant="contained" 
-            disabled
-          >
+
+          <Button variant="contained" disabled>
             送信する
           </Button>
         </Paper>
@@ -230,12 +253,12 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             <Typography variant="subtitle2" gutterBottom color="secondary">
               ワードクラウドプレビュー（サンプルデータ）
             </Typography>
-            
-            <Box 
-              sx={{ 
-                height: 300, 
-                mt: 2, 
-                display: 'flex', 
+
+            <Box
+              sx={{
+                height: 300,
+                mt: 2,
+                display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -246,21 +269,23 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
               }}
             >
               {/* 簡易ワードクラウド表示 */}
-              <Box sx={{ 
-                display: 'flex', 
-                flexWrap: 'wrap', 
-                gap: 2, 
-                justifyContent: 'center',
-                alignItems: 'center',
-                p: 2,
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  p: 2,
+                }}
+              >
                 {Object.entries(mockResponseData.wordCloud)
-                  .sort(([,a], [,b]) => b - a)
+                  .sort(([, a], [, b]) => b - a)
                   .slice(0, maxWords)
                   .map(([word, count], index) => {
                     const fontSize = Math.max(14, Math.min(36, 14 + count * 2));
                     const opacity = Math.max(0.5, count / 20);
-                    
+
                     return (
                       <Typography
                         key={index}
@@ -279,15 +304,14 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                         {word}
                       </Typography>
                     );
-                  })
-                }
+                  })}
               </Box>
-              
+
               <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
                 ワードクラウド（イメージ）
               </Typography>
             </Box>
-            
+
             <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
               回答数: {Object.values(mockResponseData.wordCloud).length} 語
             </Typography>
@@ -300,7 +324,9 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   return (
     <Box>
       {/* タイトル表示 */}
-      <Card sx={{ mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+      <Card
+        sx={{ mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+      >
         <CardContent>
           <Typography variant="h5" gutterBottom>
             {title || 'スライドタイトル'}
@@ -312,12 +338,15 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
       </Card>
 
       {/* プレビュー内容 */}
-      {type === 'multiple_choice' ? renderMultipleChoicePreview() : renderWordCloudPreview()}
+      {type === 'multiple_choice'
+        ? renderMultipleChoicePreview()
+        : renderWordCloudPreview()}
 
       {/* プレビュー注意事項 */}
       <Box sx={{ mt: 3, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
         <Typography variant="body2" color="info.contrastText">
-          💡 これはプレビューです。実際の投票画面では、参加者はスマートフォンやパソコンから回答できます。
+          💡
+          これはプレビューです。実際の投票画面では、参加者はスマートフォンやパソコンから回答できます。
         </Typography>
       </Box>
     </Box>

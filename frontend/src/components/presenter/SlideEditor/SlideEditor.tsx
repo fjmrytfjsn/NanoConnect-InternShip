@@ -9,7 +9,11 @@ import {
   Divider,
 } from '@mui/material';
 import { Quiz, Cloud } from '@mui/icons-material';
-import { SlideInfo, SlideType, SlideContent } from '../../../../../shared/types/api';
+import {
+  SlideInfo,
+  SlideType,
+  SlideContent,
+} from '../../../../../shared/types/api';
 import { MultipleChoiceEditor } from './MultipleChoiceEditor';
 import { WordCloudEditor } from './WordCloudEditor';
 import { SlidePreview } from './SlidePreview';
@@ -23,7 +27,9 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   slide,
   onSlideChange,
 }) => {
-  const [slideType, setSlideType] = useState<SlideType>(slide?.type || 'multiple_choice');
+  const [slideType, setSlideType] = useState<SlideType>(
+    slide?.type || 'multiple_choice'
+  );
   const [slideContent, setSlideContent] = useState<SlideContent>(
     slide?.content || {
       question: '',
@@ -35,7 +41,9 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       },
     }
   );
-  const [slideTitle, setSlideTitle] = useState<string>(slide?.title || '新しいスライド');
+  const [slideTitle, setSlideTitle] = useState<string>(
+    slide?.title || '新しいスライド'
+  );
 
   const handleSlideTypeChange = useCallback(
     (event: React.MouseEvent<HTMLElement>, newType: SlideType | null) => {
@@ -47,11 +55,15 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       const initialContent: SlideContent = {
         question: slideContent.question,
         ...(newType === 'multiple_choice' && {
-          options: slideContent.options?.length ? slideContent.options : ['選択肢1', '選択肢2'],
+          options: slideContent.options?.length
+            ? slideContent.options
+            : ['選択肢1', '選択肢2'],
         }),
         settings: {
           ...slideContent.settings,
-          ...(newType === 'word_cloud' && { maxWords: slideContent.settings?.maxWords || 100 }),
+          ...(newType === 'word_cloud' && {
+            maxWords: slideContent.settings?.maxWords || 100,
+          }),
         },
       };
 

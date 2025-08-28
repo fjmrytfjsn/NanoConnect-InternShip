@@ -37,7 +37,9 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
   onContentChange,
   onTitleChange,
 }) => {
-  const [options, setOptions] = useState<string[]>(content.options || ['選択肢1', '選択肢2']);
+  const [options, setOptions] = useState<string[]>(
+    content.options || ['選択肢1', '選択肢2']
+  );
   const [question, setQuestion] = useState<string>(content.question || '');
   const [timeLimit, setTimeLimit] = useState<number>(60);
   const [allowMultiple, setAllowMultiple] = useState<boolean>(
@@ -46,23 +48,33 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
   const [showResults, setShowResults] = useState<boolean>(
     content.settings?.showResults !== false
   );
-  const [resultDisplayType, setResultDisplayType] = useState<'bar' | 'pie'>('bar');
+  const [resultDisplayType, setResultDisplayType] = useState<'bar' | 'pie'>(
+    'bar'
+  );
 
   const updateContent = useCallback(
-    (updates: Partial<{
-      question: string;
-      options: string[];
-      allowMultiple: boolean;
-      showResults: boolean;
-    }>) => {
+    (
+      updates: Partial<{
+        question: string;
+        options: string[];
+        allowMultiple: boolean;
+        showResults: boolean;
+      }>
+    ) => {
       const newContent: SlideContent = {
         ...content,
         question: updates.question !== undefined ? updates.question : question,
         options: updates.options !== undefined ? updates.options : options,
         settings: {
           ...content.settings,
-          allowMultiple: updates.allowMultiple !== undefined ? updates.allowMultiple : allowMultiple,
-          showResults: updates.showResults !== undefined ? updates.showResults : showResults,
+          allowMultiple:
+            updates.allowMultiple !== undefined
+              ? updates.allowMultiple
+              : allowMultiple,
+          showResults:
+            updates.showResults !== undefined
+              ? updates.showResults
+              : showResults,
         },
       };
       onContentChange(newContent);
@@ -201,18 +213,21 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
         <Typography variant="h6" gutterBottom>
           選択肢管理
         </Typography>
-        
+
         {options.map((option, index) => (
-          <Paper key={index} sx={{ p: 2, mb: 2, border: 1, borderColor: 'grey.300' }}>
+          <Paper
+            key={index}
+            sx={{ p: 2, mb: 2, border: 1, borderColor: 'grey.300' }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton size="small" sx={{ cursor: 'grab' }}>
                 <DragHandle />
               </IconButton>
-              <Chip 
-                label={`${index + 1}`} 
-                size="small" 
-                color="primary" 
-                sx={{ minWidth: 30 }} 
+              <Chip
+                label={`${index + 1}`}
+                size="small"
+                color="primary"
+                sx={{ minWidth: 30 }}
               />
               <TextField
                 value={option}
@@ -267,10 +282,7 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
 
         <FormControlLabel
           control={
-            <Switch
-              checked={showResults}
-              onChange={handleShowResultsChange}
-            />
+            <Switch checked={showResults} onChange={handleShowResultsChange} />
           }
           label="リアルタイム結果表示"
           sx={{ mb: 2, display: 'block' }}

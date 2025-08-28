@@ -17,12 +17,7 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from '@mui/material';
-import {
-  Add,
-  ExpandMore,
-  Palette,
-  FilterList,
-} from '@mui/icons-material';
+import { Add, ExpandMore, Palette, FilterList } from '@mui/icons-material';
 import { SlideContent } from '../../../../../shared/types/api';
 
 interface WordCloudEditorProps {
@@ -33,10 +28,26 @@ interface WordCloudEditorProps {
 }
 
 const COLOR_THEMES = [
-  { id: 'default', name: 'デフォルト', colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'] },
-  { id: 'warm', name: '暖色系', colors: ['#ff6b6b', '#feca57', '#ff9ff3', '#54a0ff'] },
-  { id: 'cool', name: '寒色系', colors: ['#5f27cd', '#00d2d3', '#1dd1a1', '#576574'] },
-  { id: 'monochrome', name: 'モノクローム', colors: ['#2c2c54', '#40407a', '#706fd3', '#f8f8f8'] },
+  {
+    id: 'default',
+    name: 'デフォルト',
+    colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'],
+  },
+  {
+    id: 'warm',
+    name: '暖色系',
+    colors: ['#ff6b6b', '#feca57', '#ff9ff3', '#54a0ff'],
+  },
+  {
+    id: 'cool',
+    name: '寒色系',
+    colors: ['#5f27cd', '#00d2d3', '#1dd1a1', '#576574'],
+  },
+  {
+    id: 'monochrome',
+    name: 'モノクローム',
+    colors: ['#2c2c54', '#40407a', '#706fd3', '#f8f8f8'],
+  },
 ];
 
 const SHAPE_OPTIONS = [
@@ -53,7 +64,9 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
   onTitleChange,
 }) => {
   const [question, setQuestion] = useState<string>(content.question || '');
-  const [maxWords, setMaxWords] = useState<number>(content.settings?.maxWords || 100);
+  const [maxWords, setMaxWords] = useState<number>(
+    content.settings?.maxWords || 100
+  );
   const [maxCharacters, setMaxCharacters] = useState<number>(50);
   const [prohibitedWords, setProhibitedWords] = useState<string[]>([]);
   const [newProhibitedWord, setNewProhibitedWord] = useState<string>('');
@@ -62,22 +75,26 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
   const [minFontSize, setMinFontSize] = useState<number>(12);
   const [maxFontSize, setMaxFontSize] = useState<number>(60);
   const [minWordCount, setMinWordCount] = useState<number>(1);
-  const [enableSynonymGrouping, setEnableSynonymGrouping] = useState<boolean>(false);
+  const [enableSynonymGrouping, setEnableSynonymGrouping] =
+    useState<boolean>(false);
   // 今回は実装を保留
   // const [synonymGroups, setSynonymGroups] = useState<string[]>([]);
 
   const updateContent = useCallback(
-    (updates: Partial<{
-      question: string;
-      maxWords: number;
-      maxCharacters: number;
-    }>) => {
+    (
+      updates: Partial<{
+        question: string;
+        maxWords: number;
+        maxCharacters: number;
+      }>
+    ) => {
       const newContent: SlideContent = {
         ...content,
         question: updates.question !== undefined ? updates.question : question,
         settings: {
           ...content.settings,
-          maxWords: updates.maxWords !== undefined ? updates.maxWords : maxWords,
+          maxWords:
+            updates.maxWords !== undefined ? updates.maxWords : maxWords,
         },
       };
       onContentChange(newContent);
@@ -104,7 +121,10 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
   );
 
   const handleAddProhibitedWord = useCallback(() => {
-    if (newProhibitedWord.trim() && !prohibitedWords.includes(newProhibitedWord.trim())) {
+    if (
+      newProhibitedWord.trim() &&
+      !prohibitedWords.includes(newProhibitedWord.trim())
+    ) {
       setProhibitedWords([...prohibitedWords, newProhibitedWord.trim()]);
       setNewProhibitedWord('');
     }
@@ -112,7 +132,9 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
 
   const handleDeleteProhibitedWord = useCallback(
     (wordToDelete: string) => {
-      setProhibitedWords(prohibitedWords.filter(word => word !== wordToDelete));
+      setProhibitedWords(
+        prohibitedWords.filter((word) => word !== wordToDelete)
+      );
     },
     [prohibitedWords]
   );
@@ -164,7 +186,9 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
           </Typography>
           <Slider
             value={maxCharacters}
-            onChange={(_, value) => setMaxCharacters(Array.isArray(value) ? value[0] : value)}
+            onChange={(_, value) =>
+              setMaxCharacters(Array.isArray(value) ? value[0] : value)
+            }
             min={10}
             max={200}
             step={10}
@@ -179,7 +203,11 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
 
       {/* 表示オプション */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
           <Palette />
           表示オプション
         </Typography>
@@ -241,7 +269,9 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
           <Slider
             value={[minFontSize, maxFontSize]}
             onChange={(_, value) => {
-              const range = Array.isArray(value) ? value : [minFontSize, maxFontSize];
+              const range = Array.isArray(value)
+                ? value
+                : [minFontSize, maxFontSize];
               setMinFontSize(range[0]);
               setMaxFontSize(range[1]);
             }}
@@ -313,7 +343,9 @@ export const WordCloudEditor: React.FC<WordCloudEditorProps> = ({
               </Typography>
               <Slider
                 value={minWordCount}
-                onChange={(_, value) => setMinWordCount(Array.isArray(value) ? value[0] : value)}
+                onChange={(_, value) =>
+                  setMinWordCount(Array.isArray(value) ? value[0] : value)
+                }
                 min={1}
                 max={10}
                 step={1}
