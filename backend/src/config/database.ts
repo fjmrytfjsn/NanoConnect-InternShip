@@ -24,21 +24,17 @@ export const webContainerConfig = {
       verbose: config.nodeEnv === 'development' ? console.log : undefined,
       // WebContainer環境ではファイル作成が制限される場合があるため
       fileMustExist: false,
-    }
+    },
   },
   server: {
     port: config.port,
     cors: {
-      origin: [
-        'https://stackblitz.com',
-        'https://codesandbox.io',
-        ...config.cors.origin
-      ],
-      credentials: true
-    }
+      origin: ['https://stackblitz.com', 'https://codesandbox.io', ...config.cors.origin],
+      credentials: true,
+    },
   },
   cache: {
     ttl: 3600000, // 1 hour
-    maxSize: 1000
-  }
+    maxSize: 1000,
+  },
 };

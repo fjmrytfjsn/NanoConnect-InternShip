@@ -90,12 +90,12 @@ export class Presentation extends Entity<PresentationId> {
       this.validateTitle(title);
       this._props.title = title;
     }
-    
+
     if (description !== undefined) {
       this.validateDescription(description);
       this._props.description = description;
     }
-    
+
     this._props.updatedAt = new Date().toISOString();
   }
 
@@ -123,11 +123,11 @@ export class Presentation extends Entity<PresentationId> {
     if (!this._props.isActive) {
       throw new Error('プレゼンテーションがアクティブでないため、スライドを変更できません');
     }
-    
+
     if (this._props.currentSlideIndex >= maxSlideIndex) {
       throw new Error('既に最後のスライドです');
     }
-    
+
     this._props.currentSlideIndex += 1;
     this._props.updatedAt = new Date().toISOString();
   }
@@ -137,11 +137,11 @@ export class Presentation extends Entity<PresentationId> {
     if (!this._props.isActive) {
       throw new Error('プレゼンテーションがアクティブでないため、スライドを変更できません');
     }
-    
+
     if (this._props.currentSlideIndex <= 0) {
       throw new Error('既に最初のスライドです');
     }
-    
+
     this._props.currentSlideIndex -= 1;
     this._props.updatedAt = new Date().toISOString();
   }
@@ -151,11 +151,11 @@ export class Presentation extends Entity<PresentationId> {
     if (!this._props.isActive) {
       throw new Error('プレゼンテーションがアクティブでないため、スライドを変更できません');
     }
-    
+
     if (slideIndex < 0 || slideIndex > maxSlideIndex) {
       throw new Error(`スライドインデックスは0から${maxSlideIndex}の間で指定してください`);
     }
-    
+
     this._props.currentSlideIndex = slideIndex;
     this._props.updatedAt = new Date().toISOString();
   }

@@ -21,7 +21,7 @@ class NanoConnectServer {
     this.app = express();
     this.httpServer = createServer(this.app);
     this.database = SQLiteConnection.getInstance();
-    
+
     // Socket.IOの初期化
     this.io = new SocketIOServer(this.httpServer, {
       cors: {
@@ -38,16 +38,16 @@ class NanoConnectServer {
     try {
       // データベースの初期化
       await this.database.initialize();
-      
+
       // ミドルウェアの設定
       this.setupMiddleware();
-      
+
       // ルートの設定（Phase1では基本的なヘルスチェックのみ）
       this.setupRoutes();
-      
+
       // Socket.IOの設定（Phase1では基本設定のみ）
       this.setupSocketIO();
-      
+
       console.log('✅ サーバーの初期化が完了しました');
     } catch (error) {
       console.error('❌ サーバーの初期化に失敗しました:', error);
@@ -60,10 +60,12 @@ class NanoConnectServer {
    */
   private setupMiddleware(): void {
     // CORS設定
-    this.app.use(cors({
-      origin: config.cors.origin,
-      credentials: config.cors.credentials,
-    }));
+    this.app.use(
+      cors({
+        origin: config.cors.origin,
+        credentials: config.cors.credentials,
+      })
+    );
 
     // JSON解析
     this.app.use(express.json({ limit: '10mb' }));
@@ -85,7 +87,7 @@ class NanoConnectServer {
     // ヘルスチェックエンドポイント
     this.app.get('/health', (_req, res) => {
       const dbHealth = this.database.healthCheck();
-      
+
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -121,32 +123,35 @@ class NanoConnectServer {
     });
 
     // エラーハンドラー
-    this.app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      console.error('サーバーエラー:', error);
-      
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: config.nodeEnv === 'development' ? error.message : 'サーバー内部エラーが発生しました',
-        timestamp: new Date().toISOString(),
-      });
-    });
+    this.app.use(
+      (error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+        console.error('サーバーエラー:', error);
+
+        res.status(500).json({
+          error: 'Internal Server Error',
+          message:
+            config.nodeEnv === 'development' ? error.message : 'サーバー内部エラーが発生しました',
+          timestamp: new Date().toISOString(),
+        });
+      }
+    );
   }
 
   /**
    * Socket.IOの設定
    */
   private setupSocketIO(): void {
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       console.log(`🔗 クライアントが接続しました: ${socket.id}`);
-      
+
       // 基本的な接続処理（Phase4で詳細実装）
-      socket.on('disconnect', (reason) => {
+      socket.on('disconnect', reason => {
         console.log(`🔌 クライアントが切断しました: ${socket.id}, 理由: ${reason}`);
       });
-      
+
       // テスト用のエコーイベント
       socket.on('echo', (data, callback) => {
-        callback?.({ 
+        callback?.({
           message: 'Echo received',
           data,
           timestamp: new Date().toISOString(),
@@ -160,7 +165,7 @@ class NanoConnectServer {
    */
   public async start(): Promise<void> {
     await this.initialize();
-    
+
     this.httpServer.listen(config.port, () => {
       console.log(`🚀 NanoConnect Server が起動しました`);
       console.log(`📍 ポート: ${config.port}`);
@@ -175,17 +180,17 @@ class NanoConnectServer {
    */
   public async stop(): Promise<void> {
     console.log('🛑 サーバーを停止しています...');
-    
+
     this.httpServer.close(() => {
       console.log('📡 HTTPサーバーを停止しました');
     });
-    
+
     this.io.close(() => {
       console.log('🔌 Socket.IOサーバーを停止しました');
     });
-    
+
     this.database.close();
-    
+
     console.log('✅ サーバーの停止が完了しました');
   }
 }
@@ -206,7 +211,7 @@ process.on('SIGINT', async () => {
 });
 
 // サーバー開始
-server.start().catch((error) => {
+server.start().catch(error => {
   console.error('サーバーの開始に失敗しました:', error);
   process.exit(1);
 });

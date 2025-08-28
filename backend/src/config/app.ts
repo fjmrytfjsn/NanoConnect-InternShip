@@ -62,7 +62,7 @@ const defaultConfig: AppConfig = {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://stackblitz.com',
-      'https://codesandbox.io'
+      'https://codesandbox.io',
     ],
     credentials: true,
   },
@@ -83,13 +83,15 @@ const defaultConfig: AppConfig = {
 // 設定の検証
 function validateConfig(config: AppConfig): void {
   if (!config.jwt.secret || config.jwt.secret.length < 32) {
-    console.warn('JWT_SECRET が設定されていないか短すぎます。本番環境では強力な秘密鍵を使用してください。');
+    console.warn(
+      'JWT_SECRET が設定されていないか短すぎます。本番環境では強力な秘密鍵を使用してください。'
+    );
   }
-  
+
   if (config.nodeEnv === 'production' && config.database.verbose) {
     console.warn('本番環境でデータベースのverboseモードが有効になっています。');
   }
-  
+
   if (config.bcrypt.rounds < 10 && config.nodeEnv === 'production') {
     console.warn('本番環境でbcryptのラウンド数が少なすぎます。セキュリティリスクがあります。');
   }

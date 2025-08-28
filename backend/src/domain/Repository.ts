@@ -13,22 +13,22 @@ export interface Repository<T extends Entity<ID>, ID> {
    * IDによるエンティティの取得
    */
   findById(_id: ID): Promise<T | null>;
-  
+
   /**
    * すべてのエンティティの取得
    */
   findAll(): Promise<T[]>;
-  
+
   /**
    * エンティティの保存（新規作成・更新）
    */
   save(_entity: T): Promise<T>;
-  
+
   /**
    * エンティティの削除
    */
   delete(_id: ID): Promise<boolean>;
-  
+
   /**
    * 存在確認
    */
@@ -38,13 +38,13 @@ export interface Repository<T extends Entity<ID>, ID> {
 /**
  * 検索機能付きリポジトリインターフェース
  */
-export interface SearchableRepository<T extends Entity<ID>, ID, SearchCriteria> 
+export interface SearchableRepository<T extends Entity<ID>, ID, SearchCriteria>
   extends Repository<T, ID> {
   /**
    * 条件による検索
    */
   findByCriteria(_criteria: SearchCriteria): Promise<T[]>;
-  
+
   /**
    * ページネーション付き検索
    */
@@ -64,8 +64,7 @@ export interface SearchableRepository<T extends Entity<ID>, ID, SearchCriteria>
 /**
  * トランザクション対応リポジトリインターフェース
  */
-export interface TransactionalRepository<T extends Entity<ID>, ID> 
-  extends Repository<T, ID> {
+export interface TransactionalRepository<T extends Entity<ID>, ID> extends Repository<T, ID> {
   /**
    * トランザクション内での操作実行
    */

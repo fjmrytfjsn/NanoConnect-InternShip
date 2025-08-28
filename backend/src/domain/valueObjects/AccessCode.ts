@@ -17,11 +17,11 @@ export class AccessCode extends ValueObject<string> {
     if (!value) {
       throw new Error('アクセスコードは必須です');
     }
-    
+
     if (value.length !== AccessCode.CODE_LENGTH) {
       throw new Error(`アクセスコードは${AccessCode.CODE_LENGTH}桁である必要があります`);
     }
-    
+
     if (!/^[A-Z0-9]+$/.test(value)) {
       throw new Error('アクセスコードは英数字（大文字）のみ使用可能です');
     }

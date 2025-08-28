@@ -23,12 +23,7 @@ export class User extends Entity<UserId> {
   }
 
   // ファクトリメソッド：新規ユーザー作成
-  public static create(
-    id: UserId,
-    username: string,
-    email: string,
-    passwordHash: string
-  ): User {
+  public static create(id: UserId, username: string, email: string, passwordHash: string): User {
     const now = new Date().toISOString();
     return new User(id, {
       username,

@@ -15,15 +15,15 @@ export class SQLiteConnection {
   private constructor() {
     // データベースファイルのディレクトリを作成
     this.ensureDatabaseDirectory();
-    
+
     this._database = new Database(databaseConfig.path, databaseConfig.options);
-    
+
     // WALモードを有効化（パフォーマンス向上）
     this._database.pragma('journal_mode = WAL');
     this._database.pragma('synchronous = NORMAL');
     this._database.pragma('cache_size = 1000');
     this._database.pragma('foreign_keys = ON');
-    
+
     console.log(`📦 SQLiteデータベースに接続しました: ${databaseConfig.path}`);
   }
 
@@ -63,10 +63,10 @@ export class SQLiteConnection {
    */
   public async runMigrations(): Promise<void> {
     const migrationsDir = path.join(__dirname, 'migrations');
-    
+
     // マイグレーション管理テーブルの作成
     this.createMigrationsTable();
-    
+
     if (!fs.existsSync(migrationsDir)) {
       console.log('⚠️ マイグレーションディレクトリが存在しません');
       return;
@@ -79,7 +79,7 @@ export class SQLiteConnection {
 
     for (const file of migrationFiles) {
       const migrationName = file.replace('.sql', '');
-      
+
       // 既に実行済みかチェック
       const existing = this._database
         .prepare('SELECT name FROM migrations WHERE name = ?')
@@ -90,9 +90,9 @@ export class SQLiteConnection {
       }
 
       console.log(`🔄 マイグレーション実行中: ${migrationName}`);
-      
+
       const migrationSql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
-      
+
       try {
         // トランザクション内でマイグレーションを実行
         const transaction = this._database.transaction(() => {
@@ -101,7 +101,7 @@ export class SQLiteConnection {
             .prepare('INSERT INTO migrations (name, executed_at) VALUES (?, ?)')
             .run(migrationName, new Date().toISOString());
         });
-        
+
         transaction();
         console.log(`✅ マイグレーション完了: ${migrationName}`);
       } catch (error) {
@@ -162,7 +162,7 @@ export class SQLiteConnection {
     } catch (error) {
       return {
         status: 'error',
-        message: `Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
