@@ -51,9 +51,9 @@ export const HomePage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" mb={2}>
                 インタラクティブなプレゼンテーションを作成して、リアルタイムでオーディエンスと交流しましょう
               </Typography>
-              <Button 
-                variant="contained" 
-                fullWidth 
+              <Button
+                variant="contained"
+                fullWidth
                 onClick={handleCreatePresentation}
               >
                 作成を開始
@@ -74,9 +74,9 @@ export const HomePage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" mb={2}>
                 アクセスコードを入力してプレゼンテーションに参加し、リアルタイムで回答しましょう
               </Typography>
-              <Button 
-                variant="outlined" 
-                fullWidth 
+              <Button
+                variant="outlined"
+                fullWidth
                 onClick={handleJoinPresentation}
               >
                 参加する

@@ -15,14 +15,17 @@ import {
   Grid,
   InputAdornment,
   Tooltip,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
 } from '@mui/icons-material';
 
-import { PresentationSettings, ValidationError } from '../../../types/presentation';
+import {
+  PresentationSettings,
+  ValidationError,
+} from '../../../types/presentation';
 
 interface SettingsFormProps {
   data: PresentationSettings;
@@ -33,33 +36,42 @@ interface SettingsFormProps {
 const SettingsForm: React.FC<SettingsFormProps> = ({
   data,
   onChange,
-  errors
+  errors,
 }) => {
   // エラー取得ヘルパー
   const getFieldError = (field: string): string | undefined => {
-    return errors.find(error => error.field === field)?.message;
+    return errors.find((error) => error.field === field)?.message;
   };
 
   // 設定値更新ヘルパー
-  const updateSetting = useCallback((key: keyof PresentationSettings, value: unknown) => {
-    onChange({
-      ...data,
-      [key]: value
-    });
-  }, [data, onChange]);
+  const updateSetting = useCallback(
+    (key: keyof PresentationSettings, value: unknown) => {
+      onChange({
+        ...data,
+        [key]: value,
+      });
+    },
+    [data, onChange]
+  );
 
   // スイッチ変更ハンドラー
-  const handleSwitchChange = useCallback((key: keyof PresentationSettings) => 
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      updateSetting(key, event.target.checked);
-    }, [updateSetting]);
+  const handleSwitchChange = useCallback(
+    (key: keyof PresentationSettings) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        updateSetting(key, event.target.checked);
+      },
+    [updateSetting]
+  );
 
   // 数値入力変更ハンドラー
-  const handleNumberChange = useCallback((key: keyof PresentationSettings) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      updateSetting(key, value === '' ? undefined : parseInt(value, 10));
-    }, [updateSetting]);
+  const handleNumberChange = useCallback(
+    (key: keyof PresentationSettings) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        updateSetting(key, value === '' ? undefined : parseInt(value, 10));
+      },
+    [updateSetting]
+  );
 
   return (
     <Box>
@@ -170,10 +182,14 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                 value={data.maxParticipants || ''}
                 onChange={handleNumberChange('maxParticipants')}
                 error={Boolean(getFieldError('maxParticipants'))}
-                helperText={getFieldError('maxParticipants') || '空欄の場合は制限なし'}
+                helperText={
+                  getFieldError('maxParticipants') || '空欄の場合は制限なし'
+                }
                 InputProps={{
                   inputProps: { min: 1, max: 10000 },
-                  endAdornment: <InputAdornment position="end">人</InputAdornment>
+                  endAdornment: (
+                    <InputAdornment position="end">人</InputAdornment>
+                  ),
                 }}
               />
             </Grid>
@@ -186,10 +202,15 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                 value={data.accessCodeExpirationMinutes || ''}
                 onChange={handleNumberChange('accessCodeExpirationMinutes')}
                 error={Boolean(getFieldError('accessCodeExpirationMinutes'))}
-                helperText={getFieldError('accessCodeExpirationMinutes') || '空欄の場合は無期限'}
+                helperText={
+                  getFieldError('accessCodeExpirationMinutes') ||
+                  '空欄の場合は無期限'
+                }
                 InputProps={{
                   inputProps: { min: 5, max: 1440 },
-                  endAdornment: <InputAdornment position="end">分</InputAdornment>
+                  endAdornment: (
+                    <InputAdornment position="end">分</InputAdornment>
+                  ),
                 }}
               />
             </Grid>
@@ -214,7 +235,9 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                 value={data.ipRestriction ? data.ipRestriction.join('\n') : ''}
                 onChange={(event) => {
                   const value = event.target.value;
-                  const ipList = value ? value.split('\n').filter(ip => ip.trim()) : undefined;
+                  const ipList = value
+                    ? value.split('\n').filter((ip) => ip.trim())
+                    : undefined;
                   updateSetting('ipRestriction', ipList);
                 }}
                 helperText="特定のIPアドレスやネットワークからのアクセスのみを許可します。1行に1つのIPアドレス/ネットワークを入力してください。空欄の場合は制限なし。"
@@ -231,18 +254,20 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
         </Typography>
         <Typography variant="body2" color="text.secondary">
           • 匿名回答: {data.allowAnonymousAnswers ? '許可' : '不許可'}
-          <br />
-          • 重複回答防止: {data.preventDuplicateAnswers ? '有効' : '無効'}
-          <br />
-          • 結果表示: {data.showResultsToParticipants ? '参加者に表示' : '非表示'}
-          <br />
-          • 最大参加人数: {data.maxParticipants ? `${data.maxParticipants}人` : '制限なし'}
-          <br />
-          • アクセスコード有効期限: {data.accessCodeExpirationMinutes ? `${data.accessCodeExpirationMinutes}分` : '無期限'}
-          <br />
-          • 不適切投稿フィルター: {data.contentFilter ? '有効' : '無効'}
-          <br />
-          • IPアドレス制限: {data.ipRestriction && data.ipRestriction.length > 0 ? `${data.ipRestriction.length}個の制限` : '制限なし'}
+          <br />• 重複回答防止: {data.preventDuplicateAnswers ? '有効' : '無効'}
+          <br />• 結果表示:{' '}
+          {data.showResultsToParticipants ? '参加者に表示' : '非表示'}
+          <br />• 最大参加人数:{' '}
+          {data.maxParticipants ? `${data.maxParticipants}人` : '制限なし'}
+          <br />• アクセスコード有効期限:{' '}
+          {data.accessCodeExpirationMinutes
+            ? `${data.accessCodeExpirationMinutes}分`
+            : '無期限'}
+          <br />• 不適切投稿フィルター: {data.contentFilter ? '有効' : '無効'}
+          <br />• IPアドレス制限:{' '}
+          {data.ipRestriction && data.ipRestriction.length > 0
+            ? `${data.ipRestriction.length}個の制限`
+            : '制限なし'}
         </Typography>
       </Box>
     </Box>

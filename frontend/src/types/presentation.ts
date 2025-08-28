@@ -3,7 +3,7 @@
  */
 
 // プレゼンテーションカテゴリー
-export type PresentationCategory = 
+export type PresentationCategory =
   | 'business'
   | 'education'
   | 'entertainment'
@@ -14,22 +14,22 @@ export type PresentationCategory =
 export interface PresentationSettings {
   // 匿名回答の有無
   allowAnonymousAnswers: boolean;
-  
+
   // 重複回答制限設定
   preventDuplicateAnswers: boolean;
-  
+
   // 結果公開設定
   showResultsToParticipants: boolean;
-  
+
   // 参加人数制限
   maxParticipants?: number;
-  
+
   // アクセスコード有効期限（分）
   accessCodeExpirationMinutes?: number;
-  
+
   // IPアドレス制限
   ipRestriction?: string[];
-  
+
   // 不適切投稿フィルター
   contentFilter: boolean;
 }
@@ -41,7 +41,7 @@ export interface PresentationFormData {
   description?: string;
   category: PresentationCategory;
   tags: string[];
-  
+
   // 設定
   settings: PresentationSettings;
 }
@@ -55,8 +55,9 @@ export interface CreatePresentationRequest {
   settings: PresentationSettings;
 }
 
-// プレゼンテーション更新リクエスト  
-export interface UpdatePresentationRequest extends Partial<CreatePresentationRequest> {
+// プレゼンテーション更新リクエスト
+export interface UpdatePresentationRequest
+  extends Partial<CreatePresentationRequest> {
   id: number;
 }
 

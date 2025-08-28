@@ -14,16 +14,20 @@ import {
   Toolbar,
   IconButton,
   Alert,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Preview as PreviewIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { PresentationFormData, ValidationError, AutoSaveData } from '../types/presentation';
+import {
+  PresentationFormData,
+  ValidationError,
+  AutoSaveData,
+} from '../types/presentation';
 import BasicInfoForm from '../components/presenter/PresentationForm/BasicInfoForm';
 import SettingsForm from '../components/presenter/PresentationForm/SettingsForm';
 import PreviewCard from '../components/presenter/PresentationForm/PreviewCard';
@@ -41,8 +45,8 @@ const defaultFormData: PresentationFormData = {
     maxParticipants: undefined,
     accessCodeExpirationMinutes: 60,
     ipRestriction: undefined,
-    contentFilter: true
-  }
+    contentFilter: true,
+  },
 };
 
 interface PresentationFormPageProps {}
@@ -53,16 +57,21 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
   const isEditMode = Boolean(id);
 
   // フォーム状態
-  const [formData, setFormData] = useState<PresentationFormData>(defaultFormData);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [formData, setFormData] =
+    useState<PresentationFormData>(defaultFormData);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  
+
   // スナックバー状態
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('info');
 
   // 初期化処理
   useEffect(() => {
@@ -103,24 +112,38 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
   };
 
   // フォームデータ更新
-  const handleFormDataChange = useCallback((newData: Partial<PresentationFormData>) => {
-    setFormData(prev => ({ ...prev, ...newData }));
-    setIsDirty(true);
-    
-    // バリデーション実行
-    const errors = validateFormData({ ...formData, ...newData });
-    setValidationErrors(errors);
-  }, [formData]);
+  const handleFormDataChange = useCallback(
+    (newData: Partial<PresentationFormData>) => {
+      setFormData((prev) => ({ ...prev, ...newData }));
+      setIsDirty(true);
+
+      // バリデーション実行
+      const errors = validateFormData({ ...formData, ...newData });
+      setValidationErrors(errors);
+    },
+    [formData]
+  );
 
   // 基本情報フォーム更新
-  const handleBasicInfoChange = useCallback((basicInfo: Pick<PresentationFormData, 'title' | 'description' | 'category' | 'tags'>) => {
-    handleFormDataChange(basicInfo);
-  }, [handleFormDataChange]);
+  const handleBasicInfoChange = useCallback(
+    (
+      basicInfo: Pick<
+        PresentationFormData,
+        'title' | 'description' | 'category' | 'tags'
+      >
+    ) => {
+      handleFormDataChange(basicInfo);
+    },
+    [handleFormDataChange]
+  );
 
   // 設定フォーム更新
-  const handleSettingsChange = useCallback((settings: PresentationFormData['settings']) => {
-    handleFormDataChange({ settings });
-  }, [handleFormDataChange]);
+  const handleSettingsChange = useCallback(
+    (settings: PresentationFormData['settings']) => {
+      handleFormDataChange({ settings });
+    },
+    [handleFormDataChange]
+  );
 
   // フォームバリデーション
   const validateFormData = (data: PresentationFormData): ValidationError[] => {
@@ -128,27 +151,48 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
 
     // タイトル必須チェック
     if (!data.title || data.title.trim().length === 0) {
-      errors.push({ field: 'title', message: 'プレゼンテーションタイトルは必須です' });
+      errors.push({
+        field: 'title',
+        message: 'プレゼンテーションタイトルは必須です',
+      });
     }
 
     // タイトル長さチェック
     if (data.title && data.title.length > 100) {
-      errors.push({ field: 'title', message: 'プレゼンテーションタイトルは100文字以内で入力してください' });
+      errors.push({
+        field: 'title',
+        message: 'プレゼンテーションタイトルは100文字以内で入力してください',
+      });
     }
 
     // 説明文長さチェック
     if (data.description && data.description.length > 500) {
-      errors.push({ field: 'description', message: 'プレゼンテーション説明は500文字以内で入力してください' });
+      errors.push({
+        field: 'description',
+        message: 'プレゼンテーション説明は500文字以内で入力してください',
+      });
     }
 
     // 参加者数制限チェック
-    if (data.settings.maxParticipants !== undefined && data.settings.maxParticipants < 1) {
-      errors.push({ field: 'maxParticipants', message: '参加人数制限は1以上で入力してください' });
+    if (
+      data.settings.maxParticipants !== undefined &&
+      data.settings.maxParticipants < 1
+    ) {
+      errors.push({
+        field: 'maxParticipants',
+        message: '参加人数制限は1以上で入力してください',
+      });
     }
 
     // アクセスコード有効期限チェック
-    if (data.settings.accessCodeExpirationMinutes !== undefined && data.settings.accessCodeExpirationMinutes < 5) {
-      errors.push({ field: 'accessCodeExpirationMinutes', message: 'アクセスコード有効期限は5分以上で入力してください' });
+    if (
+      data.settings.accessCodeExpirationMinutes !== undefined &&
+      data.settings.accessCodeExpirationMinutes < 5
+    ) {
+      errors.push({
+        field: 'accessCodeExpirationMinutes',
+        message: 'アクセスコード有効期限は5分以上で入力してください',
+      });
     }
 
     return errors;
@@ -162,7 +206,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
       const autoSaveData: AutoSaveData = {
         formData,
         lastSaved: new Date().toISOString(),
-        isDraft: true
+        isDraft: true,
       };
       localStorage.setItem('presentation-draft', JSON.stringify(autoSaveData));
     } catch (error) {
@@ -197,7 +241,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
         // const response = await createPresentation(formData);
         console.log('プレゼンテーション作成:', formData);
         showSnackbar('プレゼンテーションを作成しました', 'success');
-        
+
         // 下書きデータをクリア
         localStorage.removeItem('presentation-draft');
       }
@@ -212,7 +256,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
 
   // プレビュー表示切り替え
   const handlePreviewToggle = () => {
-    setShowPreview(prev => !prev);
+    setShowPreview((prev) => !prev);
   };
 
   // 戻る処理
@@ -225,7 +269,10 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
   };
 
   // スナックバー表示
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+  const showSnackbar = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info'
+  ) => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
@@ -264,7 +311,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
             color="inherit"
             startIcon={<SaveIcon />}
             onClick={handleSave}
-            disabled={isSaving || validationErrors.length > 0}
+            disabled={isSaving}
           >
             {isSaving ? '保存中...' : '保存'}
           </Button>
@@ -279,7 +326,9 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
               {/* バリデーションエラー表示 */}
               {validationErrors.length > 0 && (
                 <Alert severity="error" sx={{ mb: 3 }}>
-                  <Typography variant="body2">入力内容を確認してください:</Typography>
+                  <Typography variant="body2">
+                    入力内容を確認してください:
+                  </Typography>
                   <ul style={{ marginBottom: 0, paddingLeft: '20px' }}>
                     {validationErrors.map((error, index) => (
                       <li key={index}>{error.message}</li>
@@ -298,7 +347,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
                     title: formData.title,
                     description: formData.description,
                     category: formData.category,
-                    tags: formData.tags
+                    tags: formData.tags,
                   }}
                   onChange={handleBasicInfoChange}
                   errors={validationErrors}
@@ -328,7 +377,7 @@ const PresentationFormPage: React.FC<PresentationFormPageProps> = () => {
                   description: formData.description,
                   category: formData.category,
                   tags: formData.tags,
-                  participantLimit: formData.settings.maxParticipants
+                  participantLimit: formData.settings.maxParticipants,
                 }}
               />
             </Grid>

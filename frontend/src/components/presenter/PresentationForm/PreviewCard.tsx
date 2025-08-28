@@ -15,7 +15,7 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
 } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -23,10 +23,13 @@ import {
   Schedule as ScheduleIcon,
   Visibility as VisibilityIcon,
   Security as SecurityIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
 } from '@mui/icons-material';
 
-import { PresentationPreview, PresentationCategory } from '../../../types/presentation';
+import {
+  PresentationPreview,
+  PresentationCategory,
+} from '../../../types/presentation';
 
 // カテゴリー表示名マッピング
 const categoryLabels: Record<PresentationCategory, string> = {
@@ -34,7 +37,7 @@ const categoryLabels: Record<PresentationCategory, string> = {
   education: '教育',
   entertainment: 'エンターテイメント',
   research: '研究',
-  other: 'その他'
+  other: 'その他',
 };
 
 // カテゴリーアイコン色
@@ -43,7 +46,7 @@ const categoryColors: Record<PresentationCategory, string> = {
   education: '#388e3c',
   entertainment: '#f57c00',
   research: '#7b1fa2',
-  other: '#616161'
+  other: '#616161',
 };
 
 interface PreviewCardProps {
@@ -52,7 +55,10 @@ interface PreviewCardProps {
 
 const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
   return (
-    <Card elevation={2} sx={{ height: 'fit-content', position: 'sticky', top: 20 }}>
+    <Card
+      elevation={2}
+      sx={{ height: 'fit-content', position: 'sticky', top: 20 }}
+    >
       <CardHeader
         avatar={
           <Avatar sx={{ bgcolor: categoryColors[data.category] }}>
@@ -62,7 +68,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
         title="プレビュー"
         subheader="参加者から見た表示内容"
       />
-      
+
       <CardContent>
         {/* タイトル */}
         <Typography variant="h6" component="h2" gutterBottom>
@@ -81,10 +87,10 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
           <Chip
             label={categoryLabels[data.category]}
             size="small"
-            sx={{ 
+            sx={{
               bgcolor: categoryColors[data.category],
               color: 'white',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
           />
         </Box>
@@ -92,17 +98,17 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
         {/* タグ */}
         {data.tags && data.tags.length > 0 && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              gutterBottom
+            >
               タグ
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {data.tags.map((tag, index) => (
-                <Chip
-                  key={index}
-                  label={tag}
-                  size="small"
-                  variant="outlined"
-                />
+                <Chip key={index} label={tag} size="small" variant="outlined" />
               ))}
             </Box>
           </Box>
@@ -123,7 +129,11 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
             </ListItemIcon>
             <ListItemText
               primary="参加人数"
-              secondary={data.participantLimit ? `最大 ${data.participantLimit} 人` : '制限なし'}
+              secondary={
+                data.participantLimit
+                  ? `最大 ${data.participantLimit} 人`
+                  : '制限なし'
+              }
             />
           </ListItem>
 
@@ -145,10 +155,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
             <ListItemIcon sx={{ minWidth: 36 }}>
               <SecurityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText
-              primary="アクセス"
-              secondary="6桁のコードで参加"
-            />
+            <ListItemText primary="アクセス" secondary="6桁のコードで参加" />
           </ListItem>
 
           {/* 匿名性 */}
@@ -156,10 +163,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ data }) => {
             <ListItemIcon sx={{ minWidth: 36 }}>
               <VisibilityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText
-              primary="回答方式"
-              secondary="匿名で参加可能"
-            />
+            <ListItemText primary="回答方式" secondary="匿名で参加可能" />
           </ListItem>
 
           {/* コンテンツフィルター */}

@@ -31,7 +31,10 @@ export const AppRouter: React.FC = () => {
         <Route path="/" element={<HomePageWithLayout />} />
         <Route path="/login" element={<LoginPageWithLayout />} />
         <Route path="/presentations/new" element={<PresentationFormPage />} />
-        <Route path="/presentations/:id/edit" element={<PresentationFormPage />} />
+        <Route
+          path="/presentations/:id/edit"
+          element={<PresentationFormPage />}
+        />
         <Route path="*" element={<NotFoundWithLayout />} />
       </Routes>
     </Router>

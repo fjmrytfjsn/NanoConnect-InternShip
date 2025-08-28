@@ -13,10 +13,13 @@ import {
   Box,
   Typography,
   Autocomplete,
-  SelectChangeEvent
+  SelectChangeEvent,
 } from '@mui/material';
 
-import { PresentationCategory, ValidationError } from '../../../types/presentation';
+import {
+  PresentationCategory,
+  ValidationError,
+} from '../../../types/presentation';
 
 // カテゴリー選択肢
 const categoryOptions: { value: PresentationCategory; label: string }[] = [
@@ -24,7 +27,7 @@ const categoryOptions: { value: PresentationCategory; label: string }[] = [
   { value: 'education', label: '教育' },
   { value: 'entertainment', label: 'エンターテイメント' },
   { value: 'research', label: '研究' },
-  { value: 'other', label: 'その他' }
+  { value: 'other', label: 'その他' },
 ];
 
 // 人気のタグ例（サジェスト用）
@@ -40,7 +43,7 @@ const popularTags = [
   '授業',
   'セミナー',
   '会議',
-  'ブレインストーミング'
+  'ブレインストーミング',
 ];
 
 interface BasicInfoFormData {
@@ -59,49 +62,58 @@ interface BasicInfoFormProps {
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   data,
   onChange,
-  errors
+  errors,
 }) => {
   // エラー取得ヘルパー
   const getFieldError = (field: string): string | undefined => {
-    return errors.find(error => error.field === field)?.message;
+    return errors.find((error) => error.field === field)?.message;
   };
 
   // タイトル変更
-  const handleTitleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({
-      ...data,
-      title: event.target.value
-    });
-  }, [data, onChange]);
+  const handleTitleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onChange({
+        ...data,
+        title: event.target.value,
+      });
+    },
+    [data, onChange]
+  );
 
   // 説明文変更
-  const handleDescriptionChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({
-      ...data,
-      description: event.target.value
-    });
-  }, [data, onChange]);
+  const handleDescriptionChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onChange({
+        ...data,
+        description: event.target.value,
+      });
+    },
+    [data, onChange]
+  );
 
   // カテゴリー変更
-  const handleCategoryChange = useCallback((event: SelectChangeEvent<PresentationCategory>) => {
-    onChange({
-      ...data,
-      category: event.target.value as PresentationCategory
-    });
-  }, [data, onChange]);
+  const handleCategoryChange = useCallback(
+    (event: SelectChangeEvent<PresentationCategory>) => {
+      onChange({
+        ...data,
+        category: event.target.value as PresentationCategory,
+      });
+    },
+    [data, onChange]
+  );
 
   // タグ変更
-  const handleTagsChange = useCallback((
-    _event: React.SyntheticEvent<Element, Event>, 
-    newValue: string[]
-  ) => {
-    // 最大10個まで
-    const limitedTags = newValue.slice(0, 10);
-    onChange({
-      ...data,
-      tags: limitedTags
-    });
-  }, [data, onChange]);
+  const handleTagsChange = useCallback(
+    (_event: React.SyntheticEvent<Element, Event>, newValue: string[]) => {
+      // 最大10個まで
+      const limitedTags = newValue.slice(0, 10);
+      onChange({
+        ...data,
+        tags: limitedTags,
+      });
+    },
+    [data, onChange]
+  );
 
   return (
     <Box>
@@ -113,7 +125,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         value={data.title}
         onChange={handleTitleChange}
         error={Boolean(getFieldError('title'))}
-        helperText={getFieldError('title') || '魅力的なタイトルを入力してください（最大100文字）'}
+        helperText={
+          getFieldError('title') ||
+          '魅力的なタイトルを入力してください（最大100文字）'
+        }
         inputProps={{ maxLength: 100 }}
         sx={{ mb: 3 }}
       />
@@ -128,7 +143,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         value={data.description || ''}
         onChange={handleDescriptionChange}
         error={Boolean(getFieldError('description'))}
-        helperText={getFieldError('description') || '参加者に分かりやすい説明を入力してください（最大500文字）'}
+        helperText={
+          getFieldError('description') ||
+          '参加者に分かりやすい説明を入力してください（最大500文字）'
+        }
         inputProps={{ maxLength: 500 }}
         sx={{ mb: 3 }}
       />
@@ -141,7 +159,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           onChange={handleCategoryChange}
           label="カテゴリー"
         >
-          {categoryOptions.map(option => (
+          {categoryOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}
             </MenuItem>
