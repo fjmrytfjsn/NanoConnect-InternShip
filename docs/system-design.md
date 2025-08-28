@@ -779,10 +779,10 @@ const logExample: LogEntry = {
 
 ### **9.1 WebContainer セットアップ**
 
-#### **package.json (WebContainer対応)**
+#### **package.json (Backend - WebContainer対応)**
 ```json
 {
-  "name": "nanoconnect-webcontainer",
+  "name": "nanoconnect-backend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -816,6 +816,105 @@ const logExample: LogEntry = {
     "@typescript-eslint/parser": "^6.2.1"
   }
 }
+```
+
+#### **package.json (Frontend - Vite + React + TypeScript)**
+```json
+{
+  "name": "nanoconnect-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "lint:fix": "eslint src/**/*.{ts,tsx} --fix"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@reduxjs/toolkit": "^1.9.5",
+    "react-redux": "^8.1.2",
+    "@mui/material": "^5.14.5",
+    "@mui/icons-material": "^5.14.3",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "socket.io-client": "^4.7.2",
+    "chart.js": "^4.3.3",
+    "react-chartjs-2": "^5.2.0",
+    "recharts": "^2.8.0",
+    "react-wordcloud": "^1.2.7",
+    "axios": "^1.4.0",
+    "react-router-dom": "^6.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.20",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.4",
+    "vite": "^4.4.9",
+    "typescript": "^5.1.6",
+    "eslint": "^8.47.0",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3"
+  }
+}
+```
+
+#### **vite.config.ts (Vite設定)**
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/types': path.resolve(__dirname, './src/types'),
+      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/store': path.resolve(__dirname, './src/store'),
+    },
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@mui/material', '@mui/icons-material'],
+          charts: ['chart.js', 'react-chartjs-2', 'recharts'],
+        },
+      },
+    },
+  },
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+  },
+})
 ```
 
 #### **WebContainer 初期化スクリプト**
@@ -873,7 +972,7 @@ async function createTables(db: Database.Database): Promise<void> {
 
 ### **9.2 StackBlitz/CodeSandbox 設定**
 
-#### **stackblitz.json**
+#### **stackblitz.json (フロントエンド - Vite)**
 ```json
 {
   "installDependencies": true,
@@ -883,19 +982,181 @@ async function createTables(db: Database.Database): Promise<void> {
   },
   "tasks": {
     "dev": {
-      "name": "Development Server",
+      "name": "Vite Development Server",
       "command": "npm run dev",
       "runAtStart": true
     },
     "build": {
-      "name": "Build TypeScript",
+      "name": "Vite Build",
       "command": "npm run build"
+    },
+    "preview": {
+      "name": "Vite Preview",
+      "command": "npm run preview"
     }
   }
 }
 ```
 
-#### **WebContainer 用の環境設定**
+#### **codesandbox.json (WebContainerサポート)**
+```json
+{
+  "template": "node",
+  "container": {
+    "port": 3000,
+    "startScript": "dev",
+    "node": "18"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  }
+}
+```
+
+### **9.3 Vite WebContainer最適化**
+
+#### **Vite HMR (Hot Module Replacement) 設定**
+```typescript
+// vite.config.ts - WebContainer最適化
+export default defineConfig({
+  plugins: [
+    react({
+      // Fast Refresh for better development experience
+      fastRefresh: true,
+    }),
+  ],
+  server: {
+    // WebContainer環境での最適化
+    hmr: {
+      port: 3001, // HMR専用ポート
+    },
+    // ファイル監視の最適化
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+    // WebContainer環境でのCORS設定
+    cors: true,
+    // プロキシ設定でバックエンドAPI接続
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
+  // WebContainer環境での依存関係最適化
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@mui/material', 'socket.io-client'],
+    exclude: ['@vite/client', '@vite/env'],
+  },
+  // チャンクサイズ最適化 (WebContainer環境向け)
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // メインベンダーチャンク
+          vendor: ['react', 'react-dom'],
+          // UI ライブラリチャンク  
+          ui: ['@mui/material', '@mui/icons-material', '@emotion/react'],
+          // チャート関連チャンク
+          charts: ['chart.js', 'react-chartjs-2', 'recharts'],
+          // Socket通信チャンク
+          realtime: ['socket.io-client'],
+        },
+      },
+    },
+    // WebContainer環境でのサイズ制限緩和
+    chunkSizeWarningLimit: 1000,
+  },
+})
+```
+
+### **9.4 WebContainer プロジェクト構造**
+
+```
+nanoconnect-webcontainer/
+├── frontend/                    # Vite + React + TypeScript
+│   ├── public/
+│   │   ├── vite.svg
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/          # React コンポーネント
+│   │   │   ├── common/
+│   │   │   ├── presenter/
+│   │   │   └── participant/
+│   │   ├── pages/              # ページコンポーネント
+│   │   ├── hooks/              # カスタムフック
+│   │   ├── store/              # Redux Store
+│   │   ├── types/              # TypeScript型定義
+│   │   ├── utils/              # ユーティリティ
+│   │   ├── services/           # API & Socket.IO
+│   │   ├── styles/             # スタイル
+│   │   ├── App.tsx
+│   │   └── main.tsx            # Viteエントリーポイント
+│   ├── package.json            # Vite依存関係
+│   ├── vite.config.ts          # Vite設定
+│   ├── tsconfig.json           # TypeScript設定
+│   ├── tsconfig.node.json      # Vite用TypeScript設定
+│   └── eslint.config.js        # ESLint設定
+├── backend/                     # Node.js + Express + TypeScript
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── middleware/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── index.ts
+│   ├── data/
+│   │   └── nanoconnect.db      # SQLite データベース
+│   ├── package.json            # Backend依存関係
+│   └── tsconfig.json           # Backend TypeScript設定
+├── shared/                      # 共通型定義
+│   └── types/
+│       ├── api.ts
+│       ├── socket.ts
+│       └── database.ts
+├── package.json                # ルートプロジェクト設定
+├── stackblitz.json             # StackBlitz設定
+├── codesandbox.json            # CodeSandbox設定
+└── README.md
+```
+
+#### **ルートプロジェクトのpackage.json (WebContainer統合)**
+```json
+{
+  "name": "nanoconnect-webcontainer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev", 
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "type-check": "npm run type-check:frontend && npm run type-check:backend",
+    "type-check:frontend": "cd frontend && npm run type-check",
+    "type-check:backend": "cd backend && npm run type-check",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
+```
+
+#### **WebContainer用の環境設定**
 ```typescript
 // src/config/webcontainer.ts
 export const webContainerConfig = {
@@ -1072,19 +1333,35 @@ npm run init-db      # tsx scripts/init-database.ts
 npm start           # tsx src/index.ts
 ```
 
-#### **Frontend 開発コマンド**
+#### **Frontend 開発コマンド (Vite + React + TypeScript)**
 ```bash
-# 開発モード
+# Vite開発サーバー起動 (Hot Reload付き)
 npm run dev          # vite
 
-# ビルド
+# 本番ビルド (TypeScript型チェック + Vite Build)
 npm run build        # tsc && vite build
 
-# 型チェック
+# ビルド結果のプレビュー
+npm run preview      # vite preview
+
+# TypeScript型チェック (ビルドなし)
 npm run type-check   # tsc --noEmit
 
-# Lint
+# ESLint (React + TypeScript対応)
 npm run lint         # eslint src/**/*.{ts,tsx}
+npm run lint:fix     # eslint src/**/*.{ts,tsx} --fix
+```
+
+#### **WebContainer 統合開発コマンド**
+```bash
+# 同時に両方のサーバーを起動 (フロントエンド:3000, バックエンド:8000)
+npm run dev:all      # concurrently "npm run dev:backend" "npm run dev:frontend"
+
+# フロントエンドのみ (Vite)
+npm run dev:frontend # cd frontend && npm run dev
+
+# バックエンドのみ (Node.js + TypeScript)
+npm run dev:backend  # cd backend && npm run dev
 ```
 
 ### **12.3 型安全性の確保**
