@@ -26,21 +26,25 @@
           │                      │
           └──────┬─────────────────┘
                  │
-          ┌─────▼─────┐
-          │Web Server │
-          │(Node.js)  │
-          │TypeScript │
-          └─────┬─────┘
-                │
-          ┌─────▼─────┐
-          │   Redis   │
-          │  (Cache)  │
-          └─────┬─────┘
-                │
-        ┌───────▼───────┐
-        │   MongoDB     │
-        │  (Database)   │
-        └───────────────┘
+        ┌────────▼────────┐
+        │  WebContainer   │
+        │   (Browser)     │
+        │  ┌───────────┐  │
+        │  │Web Server │  │
+        │  │(Node.js)  │  │
+        │  │TypeScript │  │
+        │  └─────┬─────┘  │
+        │        │        │
+        │  ┌─────▼─────┐  │
+        │  │In-Memory  │  │
+        │  │  Cache    │  │
+        │  └─────┬─────┘  │
+        │        │        │
+        │  ┌─────▼─────┐  │
+        │  │  SQLite   │  │
+        │  │(Database) │  │
+        │  └───────────┘  │
+        └─────────────────┘
 ```
 
 ### **2.2 技術スタック**
@@ -67,14 +71,14 @@
 - **Build Tool**: tsc (TypeScript Compiler)
 
 #### **データベース**
-- **メインDB**: MongoDB 6.x
-- **キャッシュ**: Redis 7.x
-- **セッション管理**: Redis
+- **メインDB**: SQLite 3.x
+- **キャッシュ**: In-Memory Storage (Map/WeakMap)
+- **セッション管理**: Browser SessionStorage + In-Memory
 
-#### **インフラ**
-- **Container**: Docker
-- **Orchestration**: Docker Compose
-- **Process Management**: PM2
+#### **実行環境**
+- **Runtime**: WebContainer (Browser-based Node.js)
+- **Development**: StackBlitz/CodeSandbox compatible
+- **Deployment**: Browser-based execution
 
 #### **TypeScript 設定**
 - **TypeScript Version**: 5.x
@@ -157,8 +161,8 @@
 ### **3.1 共通型定義**
 
 ```typescript
-// MongoDB ObjectId type
-import { ObjectId } from 'mongodb';
+// SQLite row ID type
+type SQLiteRowId = number;
 
 // Common types
 type SlideType = 'multiple_choice' | 'word_cloud';
@@ -166,51 +170,112 @@ type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
 
 // Utility types
 interface BaseEntity {
-  _id: ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
+  id: SQLiteRowId;
+  created_at: string; // ISO 8601 timestamp
+  updated_at: string; // ISO 8601 timestamp
 }
 
 interface TimestampedEntity {
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: string;
+  updated_at: string;
 }
 ```
 
-### **3.2 MongoDB スキーマ設計**
+### **3.2 SQLite スキーマ設計**
 
-#### **Users Collection**
+#### **Users Table**
+```sql
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+```
+
 ```typescript
 interface User extends BaseEntity {
   username: string; // unique
   email: string; // unique
-  passwordHash: string;
+  password_hash: string;
 }
 ```
 
-#### **Presentations Collection**
-```typescript
-interface Slide {
-  _id: ObjectId;
-  type: SlideType;
-  title: string;
-  question: string;
-  options?: string[]; // for multiple choice only
-  order: number;
-}
+#### **Presentations Table**
+```sql
+CREATE TABLE presentations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  presenter_id INTEGER NOT NULL,
+  access_code TEXT UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT FALSE,
+  current_slide_index INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (presenter_id) REFERENCES users (id)
+);
+```
 
+```typescript
 interface Presentation extends BaseEntity {
   title: string;
   description: string;
-  presenterId: ObjectId; // reference to Users
-  accessCode: string; // 6-digit unique code
-  slides: Slide[];
-  isActive: boolean;
-  currentSlideIndex: number;
+  presenter_id: SQLiteRowId; // reference to Users
+  access_code: string; // 6-digit unique code
+  is_active: boolean;
+  current_slide_index: number;
 }
 ```
 
-#### **Responses Collection**
+#### **Slides Table**
+```sql
+CREATE TABLE slides (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  presentation_id INTEGER NOT NULL,
+  type TEXT CHECK(type IN ('multiple_choice', 'word_cloud')) NOT NULL,
+  title TEXT NOT NULL,
+  question TEXT NOT NULL,
+  options TEXT, -- JSON array for multiple choice options
+  slide_order INTEGER NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (presentation_id) REFERENCES presentations (id),
+  UNIQUE(presentation_id, slide_order)
+);
+```
+
+```typescript
+interface Slide extends BaseEntity {
+  presentation_id: SQLiteRowId;
+  type: SlideType;
+  title: string;
+  question: string;
+  options?: string[]; // for multiple choice only (stored as JSON)
+  slide_order: number;
+}
+```
+
+#### **Responses Table**
+```sql
+CREATE TABLE responses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  presentation_id INTEGER NOT NULL,
+  slide_id INTEGER NOT NULL,
+  session_id TEXT NOT NULL,
+  ip_address TEXT NOT NULL,
+  response_data TEXT NOT NULL, -- JSON data
+  timestamp TEXT DEFAULT (datetime('now')),
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (presentation_id) REFERENCES presentations (id),
+  FOREIGN KEY (slide_id) REFERENCES slides (id),
+  UNIQUE(session_id, slide_id) -- prevent duplicate responses
+);
+```
+
 ```typescript
 interface ResponseData {
   // For multiple choice
@@ -220,55 +285,77 @@ interface ResponseData {
 }
 
 interface Response extends BaseEntity {
-  presentationId: ObjectId;
-  slideId: ObjectId;
-  sessionId: string; // to prevent duplicate responses
-  ipAddress: string; // for duplicate prevention
-  responseData: ResponseData;
-  timestamp: Date;
+  presentation_id: SQLiteRowId;
+  slide_id: SQLiteRowId;
+  session_id: string; // to prevent duplicate responses
+  ip_address: string; // for duplicate prevention
+  response_data: ResponseData; // stored as JSON
+  timestamp: string; // ISO 8601 timestamp
 }
 ```
 
-#### **Sessions Collection**
+#### **Sessions Table**
+```sql
+CREATE TABLE sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT UNIQUE NOT NULL,
+  presentation_id INTEGER NOT NULL,
+  participant_count INTEGER DEFAULT 1,
+  joined_at TEXT DEFAULT (datetime('now')),
+  last_activity TEXT DEFAULT (datetime('now')),
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (presentation_id) REFERENCES presentations (id)
+);
+```
+
 ```typescript
 interface Session extends BaseEntity {
-  sessionId: string; // unique
-  presentationId: ObjectId;
-  participantCount: number;
-  joinedAt: Date;
-  lastActivity: Date;
+  session_id: string; // unique
+  presentation_id: SQLiteRowId;
+  participant_count: number;
+  joined_at: string; // ISO 8601 timestamp
+  last_activity: string; // ISO 8601 timestamp
 }
 ```
 
-### **3.3 Redis スキーマ設計**
+### **3.3 In-Memory キャッシュ設計**
 
 #### **セッション管理**
 ```typescript
-interface RedisSession {
+interface InMemorySession {
   presentationId: string;
   joinedAt: number; // timestamp
   lastActivity: number; // timestamp
 }
+
+// In-Memory Storage
+const sessionCache = new Map<string, InMemorySession>();
 // Key: session:{sessionId}
 ```
 
 #### **アクティブプレゼンテーション**
 ```typescript
-interface RedisActivePresentation {
+interface InMemoryActivePresentation {
   presentationId: string;
   presenterId: string;
   currentSlide: number;
   participantCount: number;
+  lastUpdated: number; // timestamp
 }
+
+const activePresentationCache = new Map<string, InMemoryActivePresentation>();
 // Key: active_presentation:{accessCode}
 ```
 
 #### **リアルタイムデータ**
 ```typescript
-interface RedisRealtimeData {
+interface InMemoryRealtimeData {
   responses: any; // JSON data
   updatedAt: number; // timestamp
 }
+
+const realtimeCache = new Map<string, InMemoryRealtimeData>();
 // Key: realtime:{presentationId}:{slideId}
 ```
 
@@ -576,42 +663,65 @@ const multipleChoiceSchema = Joi.object({
 
 ### **7.1 パフォーマンス最適化**
 
-#### **単一インスタンス設計**
-- Node.jsアプリケーションの最適化
+#### **単一WebContainer設計**
+- Node.jsアプリケーションのブラウザ内最適化
 - Socket.IOの効率的な利用
-- 必要に応じた水平スケーリングの準備
+- In-Memory キャッシュによる高速アクセス
 
-#### **シンプルなRedis設定**
+#### **シンプルなIn-Memory設定**
 ```typescript
-// Redis設定
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3
-});
+// In-Memory Cache設定
+class InMemoryCache {
+  private cache = new Map<string, any>();
+  private ttl = new Map<string, number>();
+
+  set(key: string, value: any, ttlMs: number = 3600000): void {
+    this.cache.set(key, value);
+    this.ttl.set(key, Date.now() + ttlMs);
+  }
+
+  get(key: string): any | null {
+    const expiry = this.ttl.get(key);
+    if (expiry && Date.now() > expiry) {
+      this.cache.delete(key);
+      this.ttl.delete(key);
+      return null;
+    }
+    return this.cache.get(key) || null;
+  }
+}
+
+const cache = new InMemoryCache();
 ```
 
 ### **7.2 キャッシュ戦略**
 
 #### **シンプルなキャッシュ設計**
 1. **ブラウザキャッシュ**: 静的リソース (24時間)
-2. **Redisキャッシュ**: セッション・リアルタイムデータ
-3. **アプリケーションキャッシュ**: 頻繁アクセスデータ
+2. **In-Memoryキャッシュ**: セッション・リアルタイムデータ
+3. **SessionStorage**: ユーザーセッション情報
 
 ### **7.3 データベース最適化**
 
-#### **MongoDB インデックス**
-```javascript
-// Presentations Collection
-db.presentations.createIndex({ "accessCode": 1 }, { unique: true })
-db.presentations.createIndex({ "presenterId": 1 })
-db.presentations.createIndex({ "isActive": 1 })
+#### **SQLite インデックス**
+```sql
+-- Presentations Table
+CREATE INDEX idx_presentations_access_code ON presentations(access_code);
+CREATE INDEX idx_presentations_presenter_id ON presentations(presenter_id);
+CREATE INDEX idx_presentations_is_active ON presentations(is_active);
 
-// Responses Collection  
-db.responses.createIndex({ "presentationId": 1, "slideId": 1 })
-db.responses.createIndex({ "sessionId": 1, "slideId": 1 }, { unique: true })
-db.responses.createIndex({ "timestamp": 1 })
+-- Slides Table
+CREATE INDEX idx_slides_presentation_id ON slides(presentation_id);
+CREATE INDEX idx_slides_order ON slides(presentation_id, slide_order);
+
+-- Responses Table  
+CREATE INDEX idx_responses_presentation_slide ON responses(presentation_id, slide_id);
+CREATE INDEX idx_responses_session_slide ON responses(session_id, slide_id);
+CREATE INDEX idx_responses_timestamp ON responses(timestamp);
+
+-- Sessions Table
+CREATE INDEX idx_sessions_session_id ON sessions(session_id);
+CREATE INDEX idx_sessions_presentation_id ON sessions(presentation_id);
 ```
 
 ## **8. 運用・監視設計**
@@ -665,72 +775,173 @@ const logExample: LogEntry = {
 - 応答時間 > 2秒
 - エラー率 > 5%
 
-## **9. デプロイメント設計**
+## **9. WebContainer デプロイメント設計**
 
-### **9.1 Docker化**
+### **9.1 WebContainer セットアップ**
 
-#### **Dockerfile (Node.js App with TypeScript)**
-```dockerfile
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-COPY tsconfig.json ./
-RUN npm ci
-COPY src/ ./src/
-RUN npm run build
-
-FROM node:18-alpine AS production
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=builder /app/dist ./dist
-EXPOSE 3000
-CMD ["node", "dist/index.js"]
+#### **package.json (WebContainer対応)**
+```json
+{
+  "name": "nanoconnect-webcontainer",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --exec tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "sqlite3": "^5.1.6",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "joi": "^17.9.2",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.19",
+    "@types/express": "^4.17.17",
+    "@types/sqlite3": "^3.1.8",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.13",
+    "typescript": "^5.1.6",
+    "tsx": "^3.12.7",
+    "nodemon": "^3.0.1",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1"
+  }
+}
 ```
 
-#### **docker-compose.yml**
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    depends_on:
-      - mongodb
-      - redis
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/nanoconnect
-      - REDIS_URI=redis://redis:6379
+#### **WebContainer 初期化スクリプト**
+```typescript
+// webcontainer-setup.ts
+import Database from 'better-sqlite3';
+import path from 'path';
 
-  mongodb:
-    image: mongo:6
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
+export async function initializeWebContainer(): Promise<void> {
+  console.log('Initializing WebContainer environment...');
+  
+  // SQLite データベース初期化
+  const dbPath = path.join(process.cwd(), 'data', 'nanoconnect.db');
+  const db = new Database(dbPath);
+  
+  // テーブル作成
+  await createTables(db);
+  
+  // インデックス作成
+  await createIndexes(db);
+  
+  console.log('WebContainer initialization completed!');
+}
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
-volumes:
-  mongo_data:
+async function createTables(db: Database.Database): Promise<void> {
+  const tables = [
+    `CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS presentations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      presenter_id INTEGER NOT NULL,
+      access_code TEXT UNIQUE NOT NULL,
+      is_active BOOLEAN DEFAULT FALSE,
+      current_slide_index INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (presenter_id) REFERENCES users (id)
+    )`,
+    // ... 他のテーブル定義
+  ];
+  
+  for (const tableSQL of tables) {
+    db.exec(tableSQL);
+  }
+}
 ```
 
-### **9.2 環境分離**
+### **9.2 StackBlitz/CodeSandbox 設定**
 
-#### **開発環境**
-- Local Docker Compose
-- Hot Reload 対応
-- 詳細ログ出力
+#### **stackblitz.json**
+```json
+{
+  "installDependencies": true,
+  "startCommand": "npm run dev",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "tasks": {
+    "dev": {
+      "name": "Development Server",
+      "command": "npm run dev",
+      "runAtStart": true
+    },
+    "build": {
+      "name": "Build TypeScript",
+      "command": "npm run build"
+    }
+  }
+}
+```
 
-#### **本番環境**
-- シンプルな構成
-- 基本監視
-- 必要に応じたスケーリング対応
+#### **WebContainer 用の環境設定**
+```typescript
+// src/config/webcontainer.ts
+export const webContainerConfig = {
+  database: {
+    path: './data/nanoconnect.db',
+    options: {
+      verbose: process.env.NODE_ENV === 'development' ? console.log : undefined,
+    }
+  },
+  server: {
+    port: process.env.PORT || 3000,
+    cors: {
+      origin: ['https://stackblitz.com', 'https://codesandbox.io'],
+      credentials: true
+    }
+  },
+  cache: {
+    ttl: 3600000, // 1 hour
+    maxSize: 1000
+  }
+};
+```
+
+### **9.3 開発環境**
+
+#### **WebContainer 開発フロー**
+1. **StackBlitz/CodeSandbox でプロジェクト作成**
+2. **依存関係の自動インストール**
+3. **SQLite データベースの初期化**
+4. **開発サーバーの起動 (ホットリロード)**
+5. **TypeScript コンパイル & 型チェック**
+
+#### **実行コマンド**
+```bash
+# 開発モード (WebContainer内)
+npm run dev          # nodemon --exec tsx src/index.ts
+
+# ビルド
+npm run build        # tsc
+
+# 型チェック
+npm run type-check   # tsc --noEmit
+
+# 本番実行
+npm start           # node dist/index.js
+```
 
 ## **10. データフロー図**
 
@@ -774,38 +985,51 @@ volumes:
 
 ### **12.1 制約・前提**
 - ブラウザ対応: Chrome, Firefox, Safari, Edge (最新2バージョン)
-- 初期設計: 最大100-200人/プレゼンテーション（必要に応じて拡張可能）
+- WebContainer環境: StackBlitz/CodeSandbox互換性
+- 初期設計: 最大100-200人/プレゼンテーション（WebContainer制限内）
 - 応答時間: 1秒以内
-- データ保持: 1年間
+- データ保持: SQLiteファイル（ブラウザ環境制限内）
+- 実行環境: ブラウザベースNode.js runtime
 
 ### **12.2 拡張性**
 - 新しいスライドタイプの追加容易性
 - 多言語対応への拡張性
 - 外部サービス連携の拡張性
-- 将来的なスケールアウト対応の準備
+- WebContainer環境での制限内での拡張性
 
 ### **12.3 保守性**
 - モジュラー設計による変更影響の局所化
 - 基本的なテストカバレッジ
 - 必要に応じたドキュメント更新
-- シンプルなCI/CD パイプライン
+- WebContainer環境での開発効率性
 
 ## **12. TypeScript 開発ワークフロー**
 
 ### **12.1 開発環境セットアップ**
 
-#### **必要なパッケージ (Backend)**
+#### **必要なパッケージ (Backend - WebContainer対応)**
 ```json
 {
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "better-sqlite3": "^8.14.2",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "joi": "^17.9.2",
+    "winston": "^3.10.0"
+  },
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/express": "^4.17.17",
+    "@types/better-sqlite3": "^7.6.4",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/bcrypt": "^5.0.0",
     "@types/cors": "^2.8.13",
     "typescript": "^5.0.0",
-    "ts-node": "^10.9.0",
-    "nodemon": "^2.0.22",
+    "tsx": "^3.12.7",
+    "nodemon": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0"
   }
@@ -827,13 +1051,13 @@ volumes:
 
 ### **12.2 開発コマンド**
 
-#### **Backend 開発コマンド**
+#### **Backend 開発コマンド (WebContainer)**
 ```bash
 # TypeScript コンパイル
 npm run build        # tsc
 
 # 開発モード (ホットリロード)
-npm run dev          # nodemon --exec ts-node src/index.ts
+npm run dev          # nodemon --exec tsx src/index.ts
 
 # 型チェック
 npm run type-check   # tsc --noEmit
@@ -841,8 +1065,11 @@ npm run type-check   # tsc --noEmit
 # Lint
 npm run lint         # eslint src/**/*.ts
 
-# テスト
-npm run test         # jest --preset ts-jest
+# SQLite データベース初期化
+npm run init-db      # tsx scripts/init-database.ts
+
+# WebContainer環境の起動
+npm start           # tsx src/index.ts
 ```
 
 #### **Frontend 開発コマンド**
@@ -868,13 +1095,16 @@ npm run lint         # eslint src/**/*.{ts,tsx}
 - `strictNullChecks: true` - null/undefined チェック
 - `noImplicitReturns: true` - 明示的なreturn必須
 
-#### **型チェックのCI/CD統合**
-```yaml
-# GitHub Actions example
-- name: TypeScript Type Check
-  run: |
-    npm run type-check
-    npm run lint
+#### **型チェックのWebContainer統合**
+```bash
+# WebContainer での型チェック
+npm run type-check && npm run lint
+
+# 自動フォーマット
+npm run format  # prettier --write src/**/*.ts
+
+# 開発時の継続的チェック
+npm run watch   # tsc --watch
 ```
 
 ### **12.4 コード生成とスキーマ同期**
@@ -885,10 +1115,13 @@ npm run lint         # eslint src/**/*.{ts,tsx}
 npm run generate-types  # openapi-generator generate
 ```
 
-#### **データベーススキーマ同期**
+#### **SQLiteスキーマ同期**
 ```bash
-# MongoDB スキーマから TypeScript 型を生成
-npm run generate-db-types  # custom script
+# SQLite スキーマから TypeScript 型を生成
+npm run generate-db-types  # tsx scripts/generate-sqlite-types.ts
+
+# データベースマイグレーション
+npm run migrate           # tsx scripts/migrate-database.ts
 ```
 
 ## **13. 要件トレーサビリティマトリックス**
@@ -913,8 +1146,8 @@ npm run generate-db-types  # custom script
 | 要件ID | 要件内容 | 設計での対応箇所 | 実装方法 |
 |--------|----------|-------------------|-----------|
 | RNF-1 | 1秒以内の応答時間 | パフォーマンス設計 (Section 7) | Redis キャッシュ、WebSocket |
-| RNF-2 | 初期設計で最大100-200人同時接続 | パフォーマンス設計 (Section 7) | シンプルな構成、必要時スケーリング |
-| RNF-3 | スケーラビリティ | アーキテクチャ設計 (Section 2) | 拡張可能な設計、Docker Compose |
+| RNF-2 | 初期設計で最大100-200人同時接続 | パフォーマンス設計 (Section 7) | WebContainer最適化、In-Memory キャッシュ |
+| RNF-3 | スケーラビリティ | アーキテクチャ設計 (Section 2) | WebContainer環境対応、TypeScript設計 |
 | RNF-4 | 匿名性保護 | セキュリティ設計 (Section 6) | sessionId、個人情報非保持 |
 | RNF-5 | 不適切投稿対策 | セキュリティ設計 (Section 6.3) | 入力バリデーション、フィルタリング |
 | RNF-6 | 直感的UI | 技術スタック (Section 2.2) | React.js + Material-UI |
