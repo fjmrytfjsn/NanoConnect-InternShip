@@ -1407,7 +1407,7 @@ CREATE INDEX idx_presentations_is_active ON presentations(is_active);
 ### **6.5 Phase 5: データ可視化とUX向上**
 
 - [ ] Chart.js投票結果グラフ
-- [ ] react-wordcloudワードクラウド
+- [ ] react-wordcloud-plusワードクラウド（React 18対応版）
 - [ ] レスポンシブデザイン最適化
 - [ ] ローディング・エラー状態改善
 - [ ] アクセシビリティ対応

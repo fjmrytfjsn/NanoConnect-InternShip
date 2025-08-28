@@ -25,15 +25,15 @@ npm run format:check
 echo "✅ Backend チェック完了"
 cd ..
 
-# フロントエンド（Phase1では未実装のためスキップ）
-# if [ -d "frontend" ]; then
-#   echo "🎨 Frontend のチェック..."
-#   cd frontend
-#   npm run type-check
-#   npm run lint
-#   npm run format:check
-#   echo "✅ Frontend チェック完了"
-#   cd ..
-# fi
+フロントエンド（Phase1では未実装のためスキップ）
+if [ -d "frontend" ]; then
+  echo "🎨 Frontend のチェック..."
+  cd frontend
+  npm run type-check
+  npm run lint
+  npm run format:check
+  echo "✅ Frontend チェック完了"
+  cd ..
+fi
 
 echo "🎉 Pre-commit チェックが完了しました！"

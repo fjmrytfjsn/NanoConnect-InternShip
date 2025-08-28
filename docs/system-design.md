@@ -56,7 +56,7 @@
 - **UI Library**: Material-UI (MUI) with TypeScript
 - **リアルタイム通信**: Socket.IO Client with TypeScript
 - **Chart Library**: Chart.js / Recharts with TypeScript
-- **Word Cloud**: react-wordcloud with TypeScript
+- **Word Cloud**: react-wordcloud-plus with TypeScript (React 18対応版)
 - **Type Checking**: TypeScript strict mode
 - **Build Tool**: Vite with TypeScript
 
@@ -845,7 +845,7 @@ const logExample: LogEntry = {
     "chart.js": "^4.3.3",
     "react-chartjs-2": "^5.2.0",
     "recharts": "^2.8.0",
-    "react-wordcloud": "^1.2.7",
+    "react-wordcloud-plus": "^2.0.2",
     "axios": "^1.4.0",
     "react-router-dom": "^6.15.0"
   },
@@ -1414,7 +1414,7 @@ npm run migrate           # tsx scripts/migrate-database.ts
 | RF-1 | プレゼンテーションの作成・編集・削除 | API設計 (Section 4.1) | REST API `/api/presentations` |
 | RF-2 | 多肢選択式投票・ワードクラウドスライド | データベース設計 (Section 3.1) | Presentations.slides.type フィールド |
 | RF-3 | 6桁コード生成 | データベース設計・API設計 | accessCode フィールド、コード生成ロジック |
-| RF-4 | リアルタイム可視化 | リアルタイム通信設計 (Section 5) | WebSocket + Chart.js/react-wordcloud |
+| RF-4 | リアルタイム可視化 | リアルタイム通信設計 (Section 5) | WebSocket + Chart.js/react-wordcloud-plus |
 | RF-5 | プレゼンテーション制御 | WebSocket設計・API設計 | slide_change イベント、制御API |
 | RF-6 | 履歴・データ閲覧 | データベース設計・API設計 | 分析API `/api/presentations/:id/analytics` |
 | RF-7 | 6桁コード参加（ゲスト） | API設計・認証設計 | `/api/join` API、セッション管理 |

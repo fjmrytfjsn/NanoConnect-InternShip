@@ -1,5 +1,5 @@
 /**
- * 共通型定義
+ * 共通型定義（フロントエンド・バックエンド共通）
  * フロントエンドとバックエンドで共有される基本的な型定義
  */
 
@@ -21,12 +21,13 @@ export interface ApiError {
   details?: Record<string, any>;
 }
 
-// レスポンス型の基本形
+// API レスポンス型
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
-  error?: ApiError;
-  timestamp: Timestamp;
+  error?: ApiError | string;
+  message?: string;
+  timestamp?: Timestamp;
 }
 
 // ページネーション型
@@ -39,6 +40,52 @@ export interface Pagination {
 
 export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
   pagination: Pagination;
+}
+
+// WebSocket メッセージ型
+export interface SocketMessage {
+  type: string;
+  payload: any;
+  timestamp: string;
+}
+
+// データベース共通型
+export interface BaseEntity {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ユーザー型
+export interface User extends BaseEntity {
+  username: string;
+  email: string;
+}
+
+// プレゼンテーション型
+export interface Presentation extends BaseEntity {
+  title: string;
+  description: string;
+  accessCode: string;
+  isActive: boolean;
+  creatorId: number;
+}
+
+// スライド型
+export interface Slide extends BaseEntity {
+  presentationId: number;
+  title: string;
+  type: 'multiple_choice' | 'word_cloud' | 'open_text';
+  content: any;
+  order: number;
+}
+
+// 回答型
+export interface Response extends BaseEntity {
+  slideId: number;
+  participantName: string;
+  answer: string | string[];
+  sessionId: string;
 }
 
 // 基本的なCRUD操作の結果型
