@@ -1080,10 +1080,10 @@ export default defineConfig({
 })
 ```
 
-### **9.4 WebContainer プロジェクト構造**
+### **9.4 プロジェクト構造**
 
 ```
-nanoconnect-webcontainer/
+NanoConnect-InternShip/
 ├── docs/                        # プロジェクト文書
 │   ├── product-specification.md # 製品仕様書
 │   ├── required-specification.md # 要求仕様書
@@ -1139,7 +1139,7 @@ nanoconnect-webcontainer/
 #### **ルートプロジェクトのpackage.json (WebContainer統合)**
 ```json
 {
-  "name": "nanoconnect-webcontainer",
+  "name": "NanoConnect-InternShip",
   "version": "1.0.0",
   "private": true,
   "scripts": {
