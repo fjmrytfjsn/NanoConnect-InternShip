@@ -114,11 +114,7 @@ export class Slide extends Entity<SlideId> {
   }
 
   // ビジネスロジック：スライド情報の更新
-  public update(
-    title?: string,
-    question?: string,
-    options?: string[]
-  ): void {
+  public update(title?: string, question?: string, options?: string[]): void {
     if (title !== undefined) {
       this.validateTitle(title);
       this._props.title = title;
@@ -182,7 +178,7 @@ export class Slide extends Entity<SlideId> {
     this.validateTitle(props.title);
     this.validateQuestion(props.question);
     this.validateOptions(props.type, props.options);
-    
+
     if (props.slideOrder < 0) {
       throw new Error('スライド順序は0以上である必要があります');
     }
