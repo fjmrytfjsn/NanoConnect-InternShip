@@ -17,7 +17,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector(
+    (state: RootState) => state.auth
+  );
   const dispatch = useDispatch();
 
   const handleLogout = () => {
@@ -38,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <MenuIcon />
           </IconButton>
         )}
-        
+
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           NanoConnect
         </Typography>
@@ -54,9 +56,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               </Button>
             </>
           ) : (
-            <Button color="inherit">
-              ログイン
-            </Button>
+            <Button color="inherit">ログイン</Button>
           )}
         </Box>
       </Toolbar>

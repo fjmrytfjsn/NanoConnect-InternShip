@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  NODE_VERSION: "18.x"
+  NODE_VERSION: "20.x"
 
 jobs:
   # コード品質チェック（Lint、Format、型チェック）
@@ -27,8 +27,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd backend && npm install
+          npm ci
+          cd backend && npm ci
 
       - name: TypeScript type check (Backend)
         run: cd backend && npm run type-check
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
@@ -65,6 +65,9 @@ jobs:
 
       - name: Run linting
         run: npm run lint
+
+      - name: Run format check
+        run: npm run format:check
 
       - name: Run tests
         run: npm test -- --coverage --watchAll=false
@@ -90,8 +93,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd backend && npm install
+          npm ci
+          cd backend && npm ci
 
       - name: Run backend tests
         run: cd backend && npm run test
@@ -121,8 +124,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd backend && npm install
+          npm ci
+          cd backend && npm ci
 
       - name: Build backend
         run: cd backend && npm run build
@@ -152,8 +155,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd backend && npm install
+          npm ci
+          cd backend && npm ci
 
       - name: Run npm audit
         run: |

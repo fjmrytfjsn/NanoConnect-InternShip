@@ -11,12 +11,12 @@ export interface IPresentationRepository extends Repository<Presentation, Presen
   /**
    * プレゼンターIDによる検索
    */
-  findByPresenterId(presenterId: UserId): Promise<Presentation[]>;
+  findByPresenterId(_presenterId: UserId): Promise<Presentation[]>;
 
   /**
    * アクセスコードによる検索
    */
-  findByAccessCode(accessCode: AccessCode): Promise<Presentation | null>;
+  findByAccessCode(_accessCode: AccessCode): Promise<Presentation | null>;
 
   /**
    * アクティブなプレゼンテーション一覧の取得
@@ -26,17 +26,17 @@ export interface IPresentationRepository extends Repository<Presentation, Presen
   /**
    * プレゼンターのアクティブなプレゼンテーション取得
    */
-  findActiveByPresenterId(presenterId: UserId): Promise<Presentation[]>;
+  findActiveByPresenterId(_presenterId: UserId): Promise<Presentation[]>;
 
   /**
    * アクセスコードの重複チェック
    */
-  existsByAccessCode(accessCode: AccessCode): Promise<boolean>;
+  existsByAccessCode(_accessCode: AccessCode): Promise<boolean>;
 
   /**
    * プレゼンテーションの統計情報取得
    */
-  getStatistics(presentationId: PresentationId): Promise<{
+  getStatistics(_presentationId: PresentationId): Promise<{
     totalSlides: number;
     totalResponses: number;
     totalParticipants: number;

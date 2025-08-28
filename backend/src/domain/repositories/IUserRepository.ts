@@ -11,25 +11,25 @@ export interface IUserRepository extends Repository<User, UserId> {
   /**
    * ユーザー名による検索
    */
-  findByUsername(username: string): Promise<User | null>;
+  findByUsername(_username: string): Promise<User | null>;
 
   /**
    * メールアドレスによる検索
    */
-  findByEmail(email: string): Promise<User | null>;
+  findByEmail(_email: string): Promise<User | null>;
 
   /**
    * ユーザー名の重複チェック
    */
-  existsByUsername(username: string): Promise<boolean>;
+  existsByUsername(_username: string): Promise<boolean>;
 
   /**
    * メールアドレスの重複チェック
    */
-  existsByEmail(email: string): Promise<boolean>;
+  existsByEmail(_email: string): Promise<boolean>;
 
   /**
    * ユーザーの一括削除（管理機能用）
    */
-  deleteByIds(ids: UserId[]): Promise<number>;
+  deleteByIds(_ids: UserId[]): Promise<number>;
 }

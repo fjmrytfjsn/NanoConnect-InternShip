@@ -25,7 +25,6 @@ npm run format:check
 echo "✅ Backend チェック完了"
 cd ..
 
-フロントエンド（Phase1では未実装のためスキップ）
 if [ -d "frontend" ]; then
   echo "🎨 Frontend のチェック..."
   cd frontend
