@@ -21,7 +21,10 @@ export interface ISlideRepository extends Repository<Slide, SlideId> {
   /**
    * プレゼンテーション内の特定順序のスライド取得
    */
-  findByPresentationIdAndOrder(_presentationId: PresentationId, _order: number): Promise<Slide | null>;
+  findByPresentationIdAndOrder(
+    _presentationId: PresentationId,
+    _order: number
+  ): Promise<Slide | null>;
 
   /**
    * プレゼンテーション内のスライド最大順序取得

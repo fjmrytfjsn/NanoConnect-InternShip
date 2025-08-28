@@ -17,29 +17,23 @@ export class SQLitePresentationRepository implements IPresentationRepository {
   }
 
   async findById(id: PresentationId): Promise<Presentation | null> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT * FROM presentations WHERE id = ?'
-    );
+    const stmt = this.getDatabase().prepare('SELECT * FROM presentations WHERE id = ?');
     const row = stmt.get(id) as any;
-    
+
     if (!row) return null;
-    
+
     return this.mapRowToPresentation(row);
   }
 
   async findAll(): Promise<Presentation[]> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT * FROM presentations ORDER BY created_at DESC'
-    );
+    const stmt = this.getDatabase().prepare('SELECT * FROM presentations ORDER BY created_at DESC');
     const rows = stmt.all() as any[];
-    
+
     return rows.map(row => this.mapRowToPresentation(row));
   }
 
   async save(presentation: Presentation): Promise<Presentation> {
-    const existingStmt = this.getDatabase().prepare(
-      'SELECT id FROM presentations WHERE id = ?'
-    );
+    const existingStmt = this.getDatabase().prepare('SELECT id FROM presentations WHERE id = ?');
     const existing = existingStmt.get(presentation.id);
 
     if (existing) {
@@ -50,17 +44,13 @@ export class SQLitePresentationRepository implements IPresentationRepository {
   }
 
   async delete(id: PresentationId): Promise<boolean> {
-    const stmt = this.getDatabase().prepare(
-      'DELETE FROM presentations WHERE id = ?'
-    );
+    const stmt = this.getDatabase().prepare('DELETE FROM presentations WHERE id = ?');
     const result = stmt.run(id);
     return result.changes > 0;
   }
 
   async exists(id: PresentationId): Promise<boolean> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT id FROM presentations WHERE id = ? LIMIT 1'
-    );
+    const stmt = this.getDatabase().prepare('SELECT id FROM presentations WHERE id = ? LIMIT 1');
     const row = stmt.get(id);
     return !!row;
   }
@@ -70,18 +60,16 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       'SELECT * FROM presentations WHERE presenter_id = ? ORDER BY created_at DESC'
     );
     const rows = stmt.all(presenterId) as any[];
-    
+
     return rows.map(row => this.mapRowToPresentation(row));
   }
 
   async findByAccessCode(accessCode: AccessCode): Promise<Presentation | null> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT * FROM presentations WHERE access_code = ?'
-    );
+    const stmt = this.getDatabase().prepare('SELECT * FROM presentations WHERE access_code = ?');
     const row = stmt.get(accessCode) as any;
-    
+
     if (!row) return null;
-    
+
     return this.mapRowToPresentation(row);
   }
 
@@ -90,7 +78,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       'SELECT * FROM presentations WHERE is_active = 1 ORDER BY created_at DESC'
     );
     const rows = stmt.all() as any[];
-    
+
     return rows.map(row => this.mapRowToPresentation(row));
   }
 
@@ -99,7 +87,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       'SELECT * FROM presentations WHERE presenter_id = ? AND is_active = 1 ORDER BY created_at DESC'
     );
     const rows = stmt.all(presenterId) as any[];
-    
+
     return rows.map(row => this.mapRowToPresentation(row));
   }
 
@@ -126,19 +114,19 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       totalSlidesResult,
       totalResponsesResult,
       totalParticipantsResult,
-      activeParticipantsResult
+      activeParticipantsResult,
     ] = await Promise.all([
       this.getTotalSlides(presentationId),
       this.getTotalResponses(presentationId),
       this.getTotalParticipants(presentationId),
-      this.getActiveParticipants(presentationId)
+      this.getActiveParticipants(presentationId),
     ]);
 
     return {
       totalSlides: totalSlidesResult,
       totalResponses: totalResponsesResult,
       totalParticipants: totalParticipantsResult,
-      activeParticipants: activeParticipantsResult
+      activeParticipants: activeParticipantsResult,
     };
   }
 
@@ -150,7 +138,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
         is_active, current_slide_index, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    
+
     stmt.run(
       presentation.id,
       primitives.title,
@@ -162,7 +150,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       primitives.createdAt,
       primitives.updatedAt
     );
-    
+
     return presentation;
   }
 
@@ -174,7 +162,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
           current_slide_index = ?, updated_at = ?
       WHERE id = ?
     `);
-    
+
     stmt.run(
       primitives.title,
       primitives.description || null,
@@ -183,7 +171,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       primitives.updatedAt,
       presentation.id
     );
-    
+
     return presentation;
   }
 
@@ -196,7 +184,7 @@ export class SQLitePresentationRepository implements IPresentationRepository {
       isActive: !!row.is_active,
       currentSlideIndex: row.current_slide_index,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
     });
   }
 

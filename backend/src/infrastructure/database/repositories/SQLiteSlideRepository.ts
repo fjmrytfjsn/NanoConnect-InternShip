@@ -18,13 +18,11 @@ export class SQLiteSlideRepository implements ISlideRepository {
   }
 
   async findById(id: SlideId): Promise<Slide | null> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT * FROM slides WHERE id = ?'
-    );
+    const stmt = this.getDatabase().prepare('SELECT * FROM slides WHERE id = ?');
     const row = stmt.get(id) as any;
-    
+
     if (!row) return null;
-    
+
     return this.mapRowToSlide(row);
   }
 
@@ -33,14 +31,12 @@ export class SQLiteSlideRepository implements ISlideRepository {
       'SELECT * FROM slides ORDER BY presentation_id, slide_order'
     );
     const rows = stmt.all() as any[];
-    
+
     return rows.map(row => this.mapRowToSlide(row));
   }
 
   async save(slide: Slide): Promise<Slide> {
-    const existingStmt = this.getDatabase().prepare(
-      'SELECT id FROM slides WHERE id = ?'
-    );
+    const existingStmt = this.getDatabase().prepare('SELECT id FROM slides WHERE id = ?');
     const existing = existingStmt.get(slide.id);
 
     if (existing) {
@@ -51,17 +47,13 @@ export class SQLiteSlideRepository implements ISlideRepository {
   }
 
   async delete(id: SlideId): Promise<boolean> {
-    const stmt = this.getDatabase().prepare(
-      'DELETE FROM slides WHERE id = ?'
-    );
+    const stmt = this.getDatabase().prepare('DELETE FROM slides WHERE id = ?');
     const result = stmt.run(id);
     return result.changes > 0;
   }
 
   async exists(id: SlideId): Promise<boolean> {
-    const stmt = this.getDatabase().prepare(
-      'SELECT id FROM slides WHERE id = ? LIMIT 1'
-    );
+    const stmt = this.getDatabase().prepare('SELECT id FROM slides WHERE id = ? LIMIT 1');
     const row = stmt.get(id);
     return !!row;
   }
@@ -71,7 +63,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
       'SELECT * FROM slides WHERE presentation_id = ? ORDER BY slide_order'
     );
     const rows = stmt.all(presentationId) as any[];
-    
+
     return rows.map(row => this.mapRowToSlide(row));
   }
 
@@ -83,14 +75,17 @@ export class SQLiteSlideRepository implements ISlideRepository {
     return result?.count || 0;
   }
 
-  async findByPresentationIdAndOrder(presentationId: PresentationId, order: number): Promise<Slide | null> {
+  async findByPresentationIdAndOrder(
+    presentationId: PresentationId,
+    order: number
+  ): Promise<Slide | null> {
     const stmt = this.getDatabase().prepare(
       'SELECT * FROM slides WHERE presentation_id = ? AND slide_order = ?'
     );
     const row = stmt.get(presentationId, order) as any;
-    
+
     if (!row) return null;
-    
+
     return this.mapRowToSlide(row);
   }
 
@@ -110,7 +105,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
         'SELECT presentation_id, slide_order FROM slides WHERE id = ?'
       );
       const currentSlide = currentSlideStmt.get(slideId) as any;
-      
+
       if (!currentSlide) {
         throw new Error(`スライドが見つかりません: ${slideId}`);
       }
@@ -155,7 +150,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
       const updateStmt = this.getDatabase().prepare(
         'UPDATE slides SET slide_order = ?, updated_at = ? WHERE id = ?'
       );
-      
+
       const now = new Date().toISOString();
       for (const { slideId, order } of slideOrders) {
         updateStmt.run(order, now, slideId);
@@ -166,20 +161,18 @@ export class SQLiteSlideRepository implements ISlideRepository {
   }
 
   async deleteByPresentationId(presentationId: PresentationId): Promise<number> {
-    const stmt = this.getDatabase().prepare(
-      'DELETE FROM slides WHERE presentation_id = ?'
-    );
+    const stmt = this.getDatabase().prepare('DELETE FROM slides WHERE presentation_id = ?');
     const result = stmt.run(presentationId);
     return result.changes;
   }
 
   private async insert(slide: Slide): Promise<Slide> {
     const primitives = slide.toPrimitives();
-    
+
     // コンテンツをJSON化（questionとoptionsを含む）
     const content = JSON.stringify({
       question: primitives.question,
-      options: primitives.options
+      options: primitives.options,
     });
 
     const stmt = this.getDatabase().prepare(`
@@ -188,7 +181,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
         slide_order, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    
+
     stmt.run(
       slide.id,
       primitives.presentationId,
@@ -199,17 +192,17 @@ export class SQLiteSlideRepository implements ISlideRepository {
       primitives.createdAt,
       primitives.updatedAt
     );
-    
+
     return slide;
   }
 
   private async update(slide: Slide): Promise<Slide> {
     const primitives = slide.toPrimitives();
-    
+
     // コンテンツをJSON化
     const content = JSON.stringify({
       question: primitives.question,
-      options: primitives.options
+      options: primitives.options,
     });
 
     const stmt = this.getDatabase().prepare(`
@@ -218,7 +211,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
           slide_order = ?, updated_at = ?
       WHERE id = ?
     `);
-    
+
     stmt.run(
       primitives.title,
       primitives.type.toString(),
@@ -227,14 +220,14 @@ export class SQLiteSlideRepository implements ISlideRepository {
       primitives.updatedAt,
       slide.id
     );
-    
+
     return slide;
   }
 
   private mapRowToSlide(row: any): Slide {
     // contentからquestionとoptionsを復元
     const content = JSON.parse(row.content);
-    
+
     return Slide.restore(row.id, {
       presentationId: row.presentation_id,
       type: SlideType.fromString(row.type),
@@ -243,7 +236,7 @@ export class SQLiteSlideRepository implements ISlideRepository {
       options: content.options,
       slideOrder: row.slide_order,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
     });
   }
 }
