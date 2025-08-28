@@ -1,0 +1,35 @@
+# Prettier設定ファイル
+# コードフォーマットの統一
+
+# セミコロンを使用
+semi: true
+
+# シングルクォートを使用
+singleQuote: true
+
+# インデント幅
+tabWidth: 2
+
+# 末尾カンマの設定（ES5互換）
+trailingComma: es5
+
+# 1行の最大文字数
+printWidth: 100
+
+# 改行コード（Unix系）
+endOfLine: lf
+
+# オブジェクトの波括弧の間にスペースを入れる
+bracketSpacing: true
+
+# JSX の波括弧の位置
+bracketSameLine: false
+
+# アロー関数の引数の括弧
+arrowParens: avoid
+
+# HTML のホワイトスペース
+htmlWhitespaceSensitivity: css
+
+# Vue ファイルのスクリプト・スタイルタグのインデント
+vueIndentScriptAndStyle: false
