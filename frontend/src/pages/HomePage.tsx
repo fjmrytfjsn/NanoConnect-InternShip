@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Card,
@@ -10,6 +11,17 @@ import {
 import { PlayCircleOutline, PersonAdd } from '@mui/icons-material';
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleCreatePresentation = () => {
+    navigate('/presentations/new');
+  };
+
+  const handleJoinPresentation = () => {
+    // TODO: 参加画面への遷移を実装
+    console.log('プレゼンテーション参加');
+  };
+
   return (
     <Box>
       <Typography variant="h2" component="h1" gutterBottom align="center">
@@ -39,7 +51,11 @@ export const HomePage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" mb={2}>
                 インタラクティブなプレゼンテーションを作成して、リアルタイムでオーディエンスと交流しましょう
               </Typography>
-              <Button variant="contained" fullWidth>
+              <Button 
+                variant="contained" 
+                fullWidth 
+                onClick={handleCreatePresentation}
+              >
                 作成を開始
               </Button>
             </CardContent>
@@ -58,7 +74,11 @@ export const HomePage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" mb={2}>
                 アクセスコードを入力してプレゼンテーションに参加し、リアルタイムで回答しましょう
               </Typography>
-              <Button variant="outlined" fullWidth>
+              <Button 
+                variant="outlined" 
+                fullWidth 
+                onClick={handleJoinPresentation}
+              >
                 参加する
               </Button>
             </CardContent>
