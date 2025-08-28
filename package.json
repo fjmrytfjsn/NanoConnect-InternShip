@@ -4,7 +4,7 @@
   "private": true,
   "description": "リアルタイムインタラクティブプレゼンテーションWebアプリケーション",
   "scripts": {
-    "prepare": "is-ci || husky install",
+    "prepare": "node -e \"if (process.env.CI !== 'true') { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\"",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
@@ -38,8 +38,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
-    "husky": "^8.0.3",
-    "is-ci": "^4.1.0"
+    "husky": "^8.0.3"
   },
   "engines": {
     "node": "20.x",
