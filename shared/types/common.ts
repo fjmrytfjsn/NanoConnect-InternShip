@@ -14,6 +14,9 @@ export type AccessCode = string;
 // 基本的なタイムスタンプ型
 export type Timestamp = string; // ISO 8601形式
 
+// スライドタイプ型
+export type SlideTypeValue = 'multiple_choice' | 'word_cloud' | 'open_text';
+
 // エラー型定義
 export interface ApiError {
   code: string;
@@ -69,14 +72,16 @@ export interface Presentation extends BaseEntity {
   accessCode: string;
   isActive: boolean;
   creatorId: number;
+  currentSlideIndex: number;
 }
 
 // スライド型
 export interface Slide extends BaseEntity {
   presentationId: number;
   title: string;
-  type: 'multiple_choice' | 'word_cloud' | 'open_text';
-  content: any;
+  type: SlideTypeValue;
+  question: string;
+  options?: string[];
   order: number;
 }
 
