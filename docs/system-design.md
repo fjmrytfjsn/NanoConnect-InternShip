@@ -1084,6 +1084,10 @@ export default defineConfig({
 
 ```
 nanoconnect-webcontainer/
+├── docs/                        # プロジェクト文書
+│   ├── product-specification.md # 製品仕様書
+│   ├── required-specification.md # 要求仕様書
+│   └── system-design.md         # システム設計書
 ├── frontend/                    # Vite + React + TypeScript
 │   ├── public/
 │   │   ├── vite.svg
