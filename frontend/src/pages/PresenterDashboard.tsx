@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -29,7 +29,8 @@ const mockPresentations: Presentation[] = [
   {
     id: 1,
     title: 'React基礎講座',
-    description: 'Reactの基本概念とコンポーネント開発について学ぶためのプレゼンテーションです。',
+    description:
+      'Reactの基本概念とコンポーネント開発について学ぶためのプレゼンテーションです。',
     accessCode: 'ABC123',
     isActive: true,
     creatorId: 1,
@@ -55,7 +56,8 @@ const mockPresentations: Presentation[] = [
   {
     id: 3,
     title: 'UIデザインの基本',
-    description: 'ユーザーインターフェースデザインの基本原則とMaterial-UIの活用方法について。',
+    description:
+      'ユーザーインターフェースデザインの基本原則とMaterial-UIの活用方法について。',
     accessCode: 'GHI789',
     isActive: false,
     creatorId: 1,
@@ -70,29 +72,36 @@ const mockPresentations: Presentation[] = [
 export const PresenterDashboard: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { presentations, isLoading, error } = useSelector(
+  const { presentations, isLoading } = useSelector(
     (state: RootState) => state.presentation
   );
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [presentationToDelete, setPresentationToDelete] = useState<number | null>(null);
-  const [presentationToDeleteTitle, setPresentationToDeleteTitle] = useState<string>('');
+  const [presentationToDelete, setPresentationToDelete] = useState<
+    number | null
+  >(null);
+  const [presentationToDeleteTitle, setPresentationToDeleteTitle] =
+    useState<string>('');
+
+  const loadPresentations = useCallback(async () => {
+    try {
+      dispatch(fetchPresentationsStart());
+      // TODO: 実際のAPI呼び出しに置き換え
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // ローディング状態を表示するため
+      dispatch(fetchPresentationsSuccess(mockPresentations));
+    } catch (error) {
+      dispatch(
+        fetchPresentationsFailure(
+          'プレゼンテーション一覧の読み込みに失敗しました'
+        )
+      );
+    }
+  }, [dispatch]);
 
   // コンポーネントマウント時にプレゼンテーション一覧を読み込み
   useEffect(() => {
     loadPresentations();
-  }, []);
-
-  const loadPresentations = async () => {
-    try {
-      dispatch(fetchPresentationsStart());
-      // TODO: 実際のAPI呼び出しに置き換え
-      await new Promise(resolve => setTimeout(resolve, 1000)); // ローディング状態を表示するため
-      dispatch(fetchPresentationsSuccess(mockPresentations));
-    } catch (error) {
-      dispatch(fetchPresentationsFailure('プレゼンテーション一覧の読み込みに失敗しました'));
-    }
-  };
+  }, [loadPresentations]);
 
   const handleCreateNew = () => {
     navigate('/presenter/presentations/new');
@@ -103,7 +112,7 @@ export const PresenterDashboard: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    const presentation = presentations.find(p => p.id === id);
+    const presentation = presentations.find((p) => p.id === id);
     if (presentation) {
       setPresentationToDelete(id);
       setPresentationToDeleteTitle(presentation.title);
@@ -115,7 +124,7 @@ export const PresenterDashboard: React.FC = () => {
     if (presentationToDelete) {
       try {
         // TODO: 実際のAPI呼び出しに置き換え
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         dispatch(removePresentation(presentationToDelete));
       } catch (error) {
         console.error('削除に失敗しました:', error);
@@ -161,7 +170,7 @@ export const PresenterDashboard: React.FC = () => {
               プレゼンテーションの作成・編集・管理を行います
             </Typography>
           </Box>
-          
+
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
               variant="outlined"

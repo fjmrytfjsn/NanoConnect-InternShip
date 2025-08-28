@@ -31,7 +31,9 @@ interface PresentationCardProps {
   isListView?: boolean;
 }
 
-const getStatusColor = (status: PresentationStatus): 'default' | 'primary' | 'success' | 'error' => {
+const getStatusColor = (
+  status: PresentationStatus
+): 'default' | 'primary' | 'success' | 'error' => {
   switch (status) {
     case 'draft':
       return 'default';
@@ -120,7 +122,9 @@ export const PresentationCard: React.FC<PresentationCardProps> = ({
         }}
         onClick={() => onEdit?.(presentation.id)}
       >
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}
+        >
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" component="h3">
               {presentation.title}
@@ -129,7 +133,7 @@ export const PresentationCard: React.FC<PresentationCardProps> = ({
               {presentation.description}
             </Typography>
           </Box>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Chip
               icon={<Slideshow />}
@@ -151,8 +155,12 @@ export const PresentationCard: React.FC<PresentationCardProps> = ({
               color={getStatusColor(presentation.status)}
             />
           </Box>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ minWidth: 120 }}
+          >
             {formatDate(presentation.updatedAt)}
           </Typography>
         </Box>
@@ -211,7 +219,14 @@ export const PresentationCard: React.FC<PresentationCardProps> = ({
       onClick={() => onEdit?.(presentation.id)}
     >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            mb: 2,
+          }}
+        >
           <Typography variant="h6" component="h3" sx={{ flexGrow: 1, pr: 1 }}>
             {presentation.title}
           </Typography>

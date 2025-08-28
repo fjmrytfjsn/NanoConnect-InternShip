@@ -27,11 +27,7 @@ const mockPresentation: Presentation = {
 };
 
 const renderWithStore = (component: React.ReactElement) => {
-  return render(
-    <Provider store={mockStore}>
-      {component}
-    </Provider>
-  );
+  return render(<Provider store={mockStore}>{component}</Provider>);
 };
 
 describe('PresentationCard', () => {
@@ -55,7 +51,9 @@ describe('PresentationCard', () => {
     );
 
     expect(screen.getByText('テストプレゼンテーション')).toBeInTheDocument();
-    expect(screen.getByText('これはテスト用のプレゼンテーションです。')).toBeInTheDocument();
+    expect(
+      screen.getByText('これはテスト用のプレゼンテーションです。')
+    ).toBeInTheDocument();
     expect(screen.getByText('10 スライド')).toBeInTheDocument();
     expect(screen.getByText('TEST123')).toBeInTheDocument();
     expect(screen.getByText('公開中')).toBeInTheDocument();
@@ -73,7 +71,9 @@ describe('PresentationCard', () => {
     );
 
     expect(screen.getByText('テストプレゼンテーション')).toBeInTheDocument();
-    expect(screen.getByText('これはテスト用のプレゼンテーションです。')).toBeInTheDocument();
+    expect(
+      screen.getByText('これはテスト用のプレゼンテーションです。')
+    ).toBeInTheDocument();
   });
 
   it('編集ボタンがクリックされた時にonEditコールバックが呼ばれる', () => {
@@ -112,7 +112,7 @@ describe('PresentationCard', () => {
 
   it('ステータスに応じた適切な色でChipが表示される', () => {
     const draftPresentation = { ...mockPresentation, status: 'draft' as const };
-    
+
     renderWithStore(
       <PresentationCard
         presentation={draftPresentation}
@@ -137,6 +137,8 @@ describe('PresentationCard', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: /メニューを開く/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /メニューを開く/ })
+    ).toBeInTheDocument();
   });
 });

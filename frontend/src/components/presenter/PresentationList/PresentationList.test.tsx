@@ -44,12 +44,11 @@ const createMockStore = () => {
   return store;
 };
 
-const renderWithStore = (component: React.ReactElement, store = createMockStore()) => {
-  return render(
-    <Provider store={store}>
-      {component}
-    </Provider>
-  );
+const renderWithStore = (
+  component: React.ReactElement,
+  store = createMockStore()
+) => {
+  return render(<Provider store={store}>{component}</Provider>);
 };
 
 describe('PresentationList', () => {
@@ -83,7 +82,8 @@ describe('PresentationList', () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText('プレゼンテーションを検索...');
+    const searchInput =
+      screen.getByPlaceholderText('プレゼンテーションを検索...');
     fireEvent.change(searchInput, { target: { value: 'React' } });
 
     expect(screen.getByText('React基礎講座')).toBeInTheDocument();
@@ -101,9 +101,10 @@ describe('PresentationList', () => {
 
     const statusFilter = screen.getByLabelText('ステータス');
     fireEvent.mouseDown(statusFilter);
-    
-    const draftOption = screen.getByText('下書き');
-    fireEvent.click(draftOption);
+
+    // メニューアイテムの「下書き」を選択 (カードのChipではなく)
+    const draftMenuItem = screen.getByRole('option', { name: '下書き' });
+    fireEvent.click(draftMenuItem);
 
     expect(screen.queryByText('React基礎講座')).not.toBeInTheDocument();
     expect(screen.getByText('TypeScript入門')).toBeInTheDocument();
@@ -141,7 +142,9 @@ describe('PresentationList', () => {
       emptyStore
     );
 
-    expect(screen.getByText('プレゼンテーションが見つかりません')).toBeInTheDocument();
+    expect(
+      screen.getByText('プレゼンテーションが見つかりません')
+    ).toBeInTheDocument();
   });
 
   it('ローディング状態が正しく表示される', () => {

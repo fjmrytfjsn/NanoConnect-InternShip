@@ -27,9 +27,7 @@ const createMockStore = () => {
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <Provider store={createMockStore()}>
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
+      <BrowserRouter>{component}</BrowserRouter>
     </Provider>
   );
 };
@@ -43,8 +41,12 @@ describe('PresenterDashboard', () => {
     renderWithProviders(<PresenterDashboard />);
 
     expect(screen.getByText('プレゼンテーション管理')).toBeInTheDocument();
-    expect(screen.getByText('プレゼンテーションの作成・編集・管理を行います')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /新規作成/ })).toBeInTheDocument();
+    expect(
+      screen.getByText('プレゼンテーションの作成・編集・管理を行います')
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: /新規作成/ })[0]
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /更新/ })).toBeInTheDocument();
   });
 
@@ -75,7 +77,9 @@ describe('PresenterDashboard', () => {
 
     // 削除確認ダイアログが表示される
     expect(screen.getByText('プレゼンテーションの削除')).toBeInTheDocument();
-    expect(screen.getByText(/この操作は取り消すことができません/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/この操作は取り消すことができません/)
+    ).toBeInTheDocument();
 
     // キャンセルボタンをテスト
     const cancelButton = screen.getByRole('button', { name: /キャンセル/ });
@@ -83,7 +87,9 @@ describe('PresenterDashboard', () => {
 
     // ダイアログが閉じられる
     await waitFor(() => {
-      expect(screen.queryByText('プレゼンテーションの削除')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('プレゼンテーションの削除')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -97,6 +103,8 @@ describe('PresenterDashboard', () => {
   it('アクセシビリティ属性が適切に設定されている', () => {
     renderWithProviders(<PresenterDashboard />);
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('プレゼンテーション管理');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'プレゼンテーション管理'
+    );
   });
 });

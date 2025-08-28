@@ -16,12 +16,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import {
-  Search,
-  ViewModule,
-  ViewList,
-  Sort,
-} from '@mui/icons-material';
+import { Search, ViewModule, ViewList, Sort } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import {
@@ -32,13 +27,7 @@ import {
   setStatusFilter,
 } from '@/store/slices/presentationSlice';
 import { PresentationCard } from '../PresentationCard/PresentationCard';
-import {
-  Presentation,
-  ViewMode,
-  SortOption,
-  SortOrder,
-  PresentationStatus,
-} from '@/types/common';
+import { ViewMode, SortOption, PresentationStatus } from '@/types/common';
 
 interface PresentationListProps {
   onEdit?: (id: number) => void;
@@ -53,7 +42,10 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: 'status', label: 'ステータス' },
 ];
 
-const statusFilterOptions: { value: PresentationStatus | 'all'; label: string }[] = [
+const statusFilterOptions: {
+  value: PresentationStatus | 'all';
+  label: string;
+}[] = [
   { value: 'all', label: 'すべて' },
   { value: 'draft', label: '下書き' },
   { value: 'active', label: '公開中' },
@@ -153,7 +145,9 @@ export const PresentationList: React.FC<PresentationListProps> = ({
     dispatch(setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleStatusFilterChange = (event: SelectChangeEvent<PresentationStatus | 'all'>) => {
+  const handleStatusFilterChange = (
+    event: SelectChangeEvent<PresentationStatus | 'all'>
+  ) => {
     dispatch(setStatusFilter(event.target.value as PresentationStatus | 'all'));
   };
 
@@ -210,8 +204,9 @@ export const PresentationList: React.FC<PresentationListProps> = ({
 
         {/* ステータスフィルタ */}
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>ステータス</InputLabel>
+          <InputLabel id="status-filter-label">ステータス</InputLabel>
           <Select
+            labelId="status-filter-label"
             value={statusFilter}
             onChange={handleStatusFilterChange}
             label="ステータス"
@@ -226,8 +221,9 @@ export const PresentationList: React.FC<PresentationListProps> = ({
 
         {/* ソートオプション */}
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>並び替え</InputLabel>
+          <InputLabel id="sort-by-label">並び替え</InputLabel>
           <Select
+            labelId="sort-by-label"
             value={sortBy}
             onChange={handleSortByChange}
             label="並び替え"
