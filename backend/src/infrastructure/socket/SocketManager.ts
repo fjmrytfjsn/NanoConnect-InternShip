@@ -6,10 +6,12 @@
 import { Server as SocketIOServer, Namespace } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { BaseHandler, TypedSocket, TypedNamespace } from './handlers/BaseHandler';
+import { ParticipantHandler } from './handlers/ParticipantHandler';
 import { WebSocketAuthMiddleware } from './middleware/AuthMiddleware';
 import { WebSocketLoggingMiddleware, LogLevel } from './middleware/LoggingMiddleware';
 import { PresentationId } from '@/types/common';
 import { config } from '@/config/app';
+import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
 
 // Socket.IOイベント型定義（sharedから独立）
 export interface ServerToClientEvents {
@@ -79,8 +81,10 @@ export class SocketManager {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
   private httpServer: HttpServer;
   private handlers: Map<string, BaseHandler> = new Map();
+  private participantHandler?: ParticipantHandler;
   private roomStats: Map<string, RoomInfo> = new Map();
   private isInitialized = false;
+  private presentationRepository?: IPresentationRepository;
 
   constructor(httpServer: HttpServer, options?: SocketManagerOptions) {
     this.httpServer = httpServer;
@@ -104,14 +108,22 @@ export class SocketManager {
   /**
    * Socket.IOサーバーの初期化
    */
-  public initialize(): void {
+  public initialize(presentationRepository?: IPresentationRepository): void {
     if (this.isInitialized) {
       console.warn('⚠️ SocketManagerは既に初期化されています');
       return;
     }
 
+    // リポジトリを保存
+    this.presentationRepository = presentationRepository;
+
     // 基本名前空間の設定
     this.setupNamespaces();
+
+    // ハンドラーの初期化
+    if (presentationRepository) {
+      this.initializeHandlers();
+    }
 
     // グローバル接続エラーハンドリング
     this.io.engine.on('connection_error', err => {
@@ -120,6 +132,23 @@ export class SocketManager {
 
     this.isInitialized = true;
     console.log('✅ Socket.IOサーバー初期化完了');
+  }
+
+  /**
+   * ハンドラーの初期化
+   */
+  private initializeHandlers(): void {
+    if (!this.presentationRepository) {
+      console.warn('⚠️ PresentationRepositoryが設定されていないため、ハンドラーを初期化できません');
+      return;
+    }
+
+    // 参加者ハンドラーの初期化
+    const participantNS = this.getNamespace(NamespaceType.PARTICIPANT);
+    this.participantHandler = new ParticipantHandler(participantNS, this.presentationRepository);
+    this.participantHandler.initialize();
+
+    console.log('📝 Socket.IOハンドラー初期化完了');
   }
 
   /**
@@ -418,6 +447,13 @@ export class SocketManager {
   private extractSlideIndex(roomName: string): number | undefined {
     const match = roomName.match(/^slide-.+-(\d+)$/);
     return match ? parseInt(match[1], 10) : undefined;
+  }
+
+  /**
+   * 参加者ハンドラーの取得
+   */
+  public getParticipantHandler(): ParticipantHandler | undefined {
+    return this.participantHandler;
   }
 
   /**
