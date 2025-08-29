@@ -18,6 +18,29 @@ export interface Presentation extends BaseEntity {
   accessCode: string;
   isActive: boolean;
   creatorId: number;
+  slideCount?: number;
+  currentSlideIndex?: number;
+  status: PresentationStatus;
+}
+
+export type PresentationStatus = 'draft' | 'active' | 'ended';
+
+export type ViewMode = 'grid' | 'list';
+
+export type SortOption = 'createdAt' | 'updatedAt' | 'title' | 'status';
+
+export type SortOrder = 'asc' | 'desc';
+
+// プレゼンテーション状態管理の型
+export interface PresentationState {
+  presentations: Presentation[];
+  isLoading: boolean;
+  error: string | null;
+  viewMode: ViewMode;
+  searchQuery: string;
+  sortBy: SortOption;
+  sortOrder: SortOrder;
+  statusFilter: PresentationStatus | 'all';
 }
 
 // スライド関連の型
