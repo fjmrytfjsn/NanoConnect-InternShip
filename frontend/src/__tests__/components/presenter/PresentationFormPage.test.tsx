@@ -2,7 +2,13 @@
  * PresentationFormPage コンポーネントのテスト
  */
 
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PresentationFormPage from '../../../pages/PresentationFormPage';
 
@@ -65,7 +71,7 @@ describe('PresentationFormPage', () => {
       renderWithRouter();
 
       const previewButton = screen.getByText('プレビュー');
-      
+
       await act(async () => {
         fireEvent.click(previewButton);
       });
