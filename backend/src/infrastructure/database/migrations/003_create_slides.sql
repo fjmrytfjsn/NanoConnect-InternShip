@@ -5,7 +5,7 @@ CREATE TABLE slides (
   id TEXT PRIMARY KEY,
   presentation_id TEXT NOT NULL,
   title TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('multiple_choice', 'word_cloud')),
+  type TEXT NOT NULL CHECK (type IN ('multiple_choice', 'word_cloud', 'open_text')),
   content TEXT NOT NULL, -- JSON文字列
   slide_order INTEGER NOT NULL,
   created_at TEXT DEFAULT (datetime('now')),
