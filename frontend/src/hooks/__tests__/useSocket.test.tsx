@@ -23,31 +23,23 @@ jest.mock('socket.io-client', () => ({
 }));
 
 // SocketServiceをモック
+const mockSocketService = {
+  initialize: jest.fn(),
+  connect: jest.fn(),
+  disconnect: jest.fn(),
+  emit: jest.fn(),
+  on: jest.fn(),
+  off: jest.fn(),
+  getConnectionState: jest.fn(() => 'disconnected'),
+  isConnected: jest.fn(() => false),
+  getSocket: jest.fn(() => null),
+};
+
 jest.mock('@/services/socket/SocketService', () => ({
   SocketService: {
-    getInstance: jest.fn(() => ({
-      initialize: jest.fn(),
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      emit: jest.fn(),
-      on: jest.fn(),
-      off: jest.fn(),
-      getConnectionState: jest.fn(() => 'disconnected'),
-      isConnected: jest.fn(() => false),
-      getSocket: jest.fn(() => null),
-    })),
+    getInstance: jest.fn(() => mockSocketService),
   },
-  socketService: {
-    initialize: jest.fn(),
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    emit: jest.fn(),
-    on: jest.fn(),
-    off: jest.fn(),
-    getConnectionState: jest.fn(() => 'disconnected'),
-    isConnected: jest.fn(() => false),
-    getSocket: jest.fn(() => null),
-  },
+  socketService: mockSocketService,
 }));
 
 // テスト用ストアを作成
@@ -65,11 +57,12 @@ const createTestStore = () => {
   });
 };
 
-// テスト用ラッパー
 const createWrapper = (store = createTestStore()) => {
-  return ({ children }: { children: React.ReactNode }) => (
+  const WrapperComponent = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
+  WrapperComponent.displayName = 'WrapperComponent';
+  return WrapperComponent;
 };
 
 describe('useSocket', () => {
@@ -111,8 +104,6 @@ describe('useSocket', () => {
   });
 
   it('自動接続が無効の場合、接続処理が自動実行されない', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     renderHook(() => useSocket(false), {
       wrapper: createWrapper(),
     });
@@ -121,8 +112,6 @@ describe('useSocket', () => {
   });
 
   it('接続関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -135,8 +124,6 @@ describe('useSocket', () => {
   });
 
   it('切断関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -149,8 +136,6 @@ describe('useSocket', () => {
   });
 
   it('プレゼンテーション参加関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -169,8 +154,6 @@ describe('useSocket', () => {
   });
 
   it('プレゼンテーション退出関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -179,24 +162,31 @@ describe('useSocket', () => {
       result.current.leavePresentation('pres-123', 'session-456');
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'leave:presentation',
-      { presentationId: 'pres-123', sessionId: 'session-456' }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('leave:presentation', {
+      presentationId: 'pres-123',
+      sessionId: 'session-456',
+    });
   });
 
   it('回答送信関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
 
-    const responseData = { answer: 'A' };
+    const responseData = {
+      type: 'multiple_choice' as const,
+      selectedOptions: [0],
+    };
     const mockCallback = jest.fn();
 
     act(() => {
-      result.current.submitResponse('pres-123', 'slide-456', responseData, 'session-789', mockCallback);
+      result.current.submitResponse(
+        'pres-123',
+        'slide-456',
+        responseData,
+        'session-789',
+        mockCallback
+      );
     });
 
     expect(mockSocketService.emit).toHaveBeenCalledWith(
@@ -212,8 +202,6 @@ describe('useSocket', () => {
   });
 
   it('プレゼンテーション制御関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -222,24 +210,20 @@ describe('useSocket', () => {
       result.current.startPresentationControl('pres-123');
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'control:start',
-      { presentationId: 'pres-123' }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('control:start', {
+      presentationId: 'pres-123',
+    });
 
     act(() => {
       result.current.stopPresentationControl('pres-123');
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'control:stop',
-      { presentationId: 'pres-123' }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('control:stop', {
+      presentationId: 'pres-123',
+    });
   });
 
   it('スライド制御関数が正常に動作する', () => {
-    const mockSocketService = require('@/services/socket/SocketService').socketService;
-    
     const { result } = renderHook(() => useSocket(), {
       wrapper: createWrapper(),
     });
@@ -248,27 +232,25 @@ describe('useSocket', () => {
       result.current.nextSlide('pres-123');
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'control:next-slide',
-      { presentationId: 'pres-123' }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('control:next-slide', {
+      presentationId: 'pres-123',
+    });
 
     act(() => {
       result.current.prevSlide('pres-123');
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'control:prev-slide',
-      { presentationId: 'pres-123' }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('control:prev-slide', {
+      presentationId: 'pres-123',
+    });
 
     act(() => {
       result.current.gotoSlide('pres-123', 2);
     });
 
-    expect(mockSocketService.emit).toHaveBeenCalledWith(
-      'control:goto-slide',
-      { presentationId: 'pres-123', slideIndex: 2 }
-    );
+    expect(mockSocketService.emit).toHaveBeenCalledWith('control:goto-slide', {
+      presentationId: 'pres-123',
+      slideIndex: 2,
+    });
   });
 });

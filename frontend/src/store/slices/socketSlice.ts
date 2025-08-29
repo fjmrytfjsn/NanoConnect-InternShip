@@ -16,7 +16,7 @@ import {
   ParticipantJoinedEvent,
   ParticipantLeftEvent,
   SocketErrorEvent,
-  NotificationEvent
+  NotificationEvent,
 } from 'nanoconnect-internship/shared/types/socket';
 
 // WebSocket状態の型定義
@@ -34,7 +34,7 @@ export interface SocketState {
     hasError: boolean;
     message: string;
     code?: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
     timestamp?: string;
   };
 
@@ -43,16 +43,16 @@ export interface SocketState {
     // 現在のプレゼンテーション情報
     currentPresentation: PresentationUpdateEvent | null;
     presentationStatus: 'idle' | 'started' | 'stopped';
-    
+
     // 現在のスライド情報
     currentSlide: SlideChangeEvent | null;
-    
+
     // 参加者情報
     participants: {
       count: number;
       recent: ParticipantJoinedEvent[];
     };
-    
+
     // レスポンス・分析データ
     responses: ResponseReceivedEvent[];
     analytics: AnalyticsUpdateEvent | null;
@@ -60,7 +60,7 @@ export interface SocketState {
 
   // 通知
   notifications: NotificationEvent[];
-  
+
   // 設定
   settings: {
     autoReconnect: boolean;
@@ -117,18 +117,19 @@ const socketSlice = createSlice({
   initialState,
   reducers: {
     // ========== 接続状態管理 ==========
-    
+
     /**
      * 接続状態を更新
      */
     setConnectionState: (state, action: PayloadAction<ConnectionState>) => {
       const newState = action.payload;
       const timestamp = new Date().toISOString();
-      
+
       state.connectionState = newState;
-      state.isConnecting = newState === 'connecting' || newState === 'reconnecting';
+      state.isConnecting =
+        newState === 'connecting' || newState === 'reconnecting';
       state.isConnected = newState === 'connected';
-      
+
       // 接続成功時の処理
       if (newState === 'connected') {
         state.lastConnectedTime = timestamp;
@@ -136,12 +137,12 @@ const socketSlice = createSlice({
         state.error.hasError = false;
         state.error.message = '';
       }
-      
+
       // 切断時の処理
       if (newState === 'disconnected') {
         state.lastDisconnectedTime = timestamp;
       }
-      
+
       // 再接続試行時の処理
       if (newState === 'reconnecting') {
         state.reconnectAttempts += 1;
@@ -156,7 +157,7 @@ const socketSlice = createSlice({
     },
 
     // ========== エラー状態管理 ==========
-    
+
     /**
      * エラー状態を設定
      */
@@ -181,18 +182,24 @@ const socketSlice = createSlice({
     },
 
     // ========== リアルタイムデータ管理 ==========
-    
+
     /**
      * プレゼンテーション更新
      */
-    updatePresentation: (state, action: PayloadAction<PresentationUpdateEvent>) => {
+    updatePresentation: (
+      state,
+      action: PayloadAction<PresentationUpdateEvent>
+    ) => {
       state.realtimeData.currentPresentation = action.payload;
     },
 
     /**
      * プレゼンテーション開始
      */
-    startPresentation: (state, action: PayloadAction<PresentationStartEvent>) => {
+    startPresentation: (
+      state,
+      action: PayloadAction<PresentationStartEvent>
+    ) => {
       state.realtimeData.presentationStatus = 'started';
       // プレゼンテーション情報も更新
       state.realtimeData.currentPresentation = {
@@ -207,6 +214,8 @@ const socketSlice = createSlice({
      */
     stopPresentation: (state, action: PayloadAction<PresentationStopEvent>) => {
       state.realtimeData.presentationStatus = 'stopped';
+      // イベントデータは使わないが、型の一貫性のため保持
+      console.log('Presentation stopped:', action.payload.presentationId);
     },
 
     /**
@@ -223,8 +232,10 @@ const socketSlice = createSlice({
      */
     updateSlide: (state, action: PayloadAction<SlideUpdateEvent>) => {
       // 現在のスライドが対象の場合は更新
-      if (state.realtimeData.currentSlide && 
-          state.realtimeData.currentSlide.slideId === action.payload.slideId) {
+      if (
+        state.realtimeData.currentSlide &&
+        state.realtimeData.currentSlide.slideId === action.payload.slideId
+      ) {
         state.realtimeData.currentSlide = {
           ...state.realtimeData.currentSlide,
           ...action.payload,
@@ -235,13 +246,17 @@ const socketSlice = createSlice({
     /**
      * 参加者参加
      */
-    participantJoined: (state, action: PayloadAction<ParticipantJoinedEvent>) => {
+    participantJoined: (
+      state,
+      action: PayloadAction<ParticipantJoinedEvent>
+    ) => {
       state.realtimeData.participants.count += 1;
       state.realtimeData.participants.recent.unshift(action.payload);
-      
+
       // 最近の参加者リストを最大10件に制限
       if (state.realtimeData.participants.recent.length > 10) {
-        state.realtimeData.participants.recent = state.realtimeData.participants.recent.slice(0, 10);
+        state.realtimeData.participants.recent =
+          state.realtimeData.participants.recent.slice(0, 10);
       }
     },
 
@@ -249,7 +264,12 @@ const socketSlice = createSlice({
      * 参加者退出
      */
     participantLeft: (state, action: PayloadAction<ParticipantLeftEvent>) => {
-      state.realtimeData.participants.count = Math.max(0, state.realtimeData.participants.count - 1);
+      state.realtimeData.participants.count = Math.max(
+        0,
+        state.realtimeData.participants.count - 1
+      );
+      // イベントデータは使わないが、型の一貫性のため保持
+      console.log('Participant left:', action.payload.sessionId);
     },
 
     /**
@@ -257,7 +277,7 @@ const socketSlice = createSlice({
      */
     receiveResponse: (state, action: PayloadAction<ResponseReceivedEvent>) => {
       state.realtimeData.responses.push(action.payload);
-      
+
       // レスポンス数を制限（メモリ節約）
       if (state.realtimeData.responses.length > 1000) {
         state.realtimeData.responses = state.realtimeData.responses.slice(-800);
@@ -272,7 +292,7 @@ const socketSlice = createSlice({
     },
 
     // ========== 通知管理 ==========
-    
+
     /**
      * 通知を追加
      */
@@ -281,7 +301,7 @@ const socketSlice = createSlice({
         ...action.payload,
         timestamp: action.payload.timestamp || new Date().toISOString(),
       });
-      
+
       // 通知数を制限
       if (state.notifications.length > 50) {
         state.notifications = state.notifications.slice(0, 50);
@@ -293,7 +313,7 @@ const socketSlice = createSlice({
      */
     removeNotification: (state, action: PayloadAction<{ id: string }>) => {
       state.notifications = state.notifications.filter(
-        notification => notification.id !== action.payload.id
+        (notification) => notification.id !== action.payload.id
       );
     },
 
@@ -305,7 +325,7 @@ const socketSlice = createSlice({
     },
 
     // ========== 設定管理 ==========
-    
+
     /**
      * 自動再接続設定を変更
      */
@@ -328,7 +348,7 @@ const socketSlice = createSlice({
     },
 
     // ========== リセット ==========
-    
+
     /**
      * リアルタイムデータをリセット
      */
@@ -350,11 +370,11 @@ export const {
   // 接続状態
   setConnectionState,
   resetReconnectAttempts,
-  
+
   // エラー状態
   setError,
   clearError,
-  
+
   // リアルタイムデータ
   updatePresentation,
   startPresentation,
@@ -365,17 +385,17 @@ export const {
   participantLeft,
   receiveResponse,
   updateAnalytics,
-  
+
   // 通知
   addNotification,
   removeNotification,
   clearNotifications,
-  
+
   // 設定
   setAutoReconnect,
   setNotificationEnabled,
   setMaxReconnectAttempts,
-  
+
   // リセット
   resetRealtimeData,
   reset,
@@ -387,28 +407,38 @@ export default socketSlice.reducer;
 // セレクター関数をエクスポート
 export const socketSelectors = {
   // 接続状態
-  getConnectionState: (state: { socket: SocketState }) => state.socket.connectionState,
+  getConnectionState: (state: { socket: SocketState }) =>
+    state.socket.connectionState,
   getIsConnected: (state: { socket: SocketState }) => state.socket.isConnected,
-  getIsConnecting: (state: { socket: SocketState }) => state.socket.isConnecting,
-  getReconnectAttempts: (state: { socket: SocketState }) => state.socket.reconnectAttempts,
-  
+  getIsConnecting: (state: { socket: SocketState }) =>
+    state.socket.isConnecting,
+  getReconnectAttempts: (state: { socket: SocketState }) =>
+    state.socket.reconnectAttempts,
+
   // エラー状態
   getError: (state: { socket: SocketState }) => state.socket.error,
   getHasError: (state: { socket: SocketState }) => state.socket.error.hasError,
-  
+
   // リアルタイムデータ
-  getCurrentPresentation: (state: { socket: SocketState }) => state.socket.realtimeData.currentPresentation,
-  getPresentationStatus: (state: { socket: SocketState }) => state.socket.realtimeData.presentationStatus,
-  getCurrentSlide: (state: { socket: SocketState }) => state.socket.realtimeData.currentSlide,
-  getParticipants: (state: { socket: SocketState }) => state.socket.realtimeData.participants,
-  getResponses: (state: { socket: SocketState }) => state.socket.realtimeData.responses,
-  getAnalytics: (state: { socket: SocketState }) => state.socket.realtimeData.analytics,
-  
+  getCurrentPresentation: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.currentPresentation,
+  getPresentationStatus: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.presentationStatus,
+  getCurrentSlide: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.currentSlide,
+  getParticipants: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.participants,
+  getResponses: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.responses,
+  getAnalytics: (state: { socket: SocketState }) =>
+    state.socket.realtimeData.analytics,
+
   // 通知
-  getNotifications: (state: { socket: SocketState }) => state.socket.notifications,
-  getUnreadNotificationCount: (state: { socket: SocketState }) => 
-    state.socket.notifications.filter(n => !n.read).length,
-  
+  getNotifications: (state: { socket: SocketState }) =>
+    state.socket.notifications,
+  getUnreadNotificationCount: (state: { socket: SocketState }) =>
+    state.socket.notifications.filter((n) => !n.read).length,
+
   // 設定
   getSettings: (state: { socket: SocketState }) => state.socket.settings,
 };

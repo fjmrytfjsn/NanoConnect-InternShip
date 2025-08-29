@@ -2,7 +2,7 @@
  * SocketService基本テスト
  */
 
-import { SocketService, ConnectionState } from '@/services/socket/SocketService';
+import { SocketService } from '@/services/socket/SocketService';
 
 // Socket.IOクライアントをモック
 jest.mock('socket.io-client', () => ({
@@ -23,10 +23,9 @@ describe('SocketService', () => {
 
   beforeEach(() => {
     // シングルトンインスタンスをリセット
-    (SocketService as any).instance = null;
+    (SocketService as unknown as { instance: null }).instance = null;
     socketService = SocketService.getInstance();
-    
-    // Windowオブジェクトをモック
+
     Object.defineProperty(window, 'dispatchEvent', {
       value: jest.fn(),
       writable: true,
@@ -42,7 +41,7 @@ describe('SocketService', () => {
     it('シングルトンパターンで動作する', () => {
       const instance1 = SocketService.getInstance();
       const instance2 = SocketService.getInstance();
-      
+
       expect(instance1).toBe(instance2);
     });
 
@@ -52,10 +51,10 @@ describe('SocketService', () => {
         reconnectionAttempts: 10,
         timeout: 15000,
       };
-      
-      (SocketService as any).instance = null;
+
+      (SocketService as unknown as { instance: null }).instance = null;
       const service = SocketService.getInstance(config);
-      
+
       expect(service).toBeInstanceOf(SocketService);
     });
   });
@@ -69,7 +68,7 @@ describe('SocketService', () => {
 
     it('接続処理が正常に動作する', () => {
       socketService.initialize();
-      
+
       expect(() => {
         socketService.connect();
       }).not.toThrow();
@@ -77,7 +76,7 @@ describe('SocketService', () => {
 
     it('切断処理が正常に動作する', () => {
       socketService.initialize();
-      
+
       expect(() => {
         socketService.disconnect();
       }).not.toThrow();
@@ -101,7 +100,7 @@ describe('SocketService', () => {
 
     it('イベントリスナーの登録が正常に動作する', () => {
       const mockListener = jest.fn();
-      
+
       expect(() => {
         socketService.on('notification', mockListener);
       }).not.toThrow();
@@ -109,9 +108,9 @@ describe('SocketService', () => {
 
     it('イベントリスナーの削除が正常に動作する', () => {
       const mockListener = jest.fn();
-      
+
       socketService.on('notification', mockListener);
-      
+
       expect(() => {
         socketService.off('notification', mockListener);
       }).not.toThrow();
@@ -119,7 +118,11 @@ describe('SocketService', () => {
 
     it('イベント送信が正常に動作する', () => {
       expect(() => {
-        socketService.emit('join:presentation', { accessCode: 'TEST123' }, () => {});
+        socketService.emit(
+          'join:presentation',
+          { accessCode: 'TEST123' },
+          () => {}
+        );
       }).not.toThrow();
     });
   });
@@ -127,11 +130,11 @@ describe('SocketService', () => {
   describe('リソース管理', () => {
     it('リソースの破棄が正常に動作する', () => {
       socketService.initialize();
-      
+
       expect(() => {
         socketService.destroy();
       }).not.toThrow();
-      
+
       expect(socketService.getConnectionState()).toBe('disconnected');
       expect(socketService.isConnected()).toBe(false);
     });

@@ -142,7 +142,9 @@ describe('socketSlice', () => {
       const action = updatePresentation(presentationData);
       const newState = socketReducer(initialState, action);
 
-      expect(newState.realtimeData.currentPresentation).toEqual(presentationData);
+      expect(newState.realtimeData.currentPresentation).toEqual(
+        presentationData
+      );
     });
 
     it('プレゼンテーションを開始する', () => {
@@ -169,7 +171,9 @@ describe('socketSlice', () => {
       const newState = socketReducer(initialState, action);
 
       expect(newState.realtimeData.presentationStatus).toBe('started');
-      expect(newState.realtimeData.currentPresentation?.presentationId).toBe('pres-123');
+      expect(newState.realtimeData.currentPresentation?.presentationId).toBe(
+        'pres-123'
+      );
     });
 
     it('プレゼンテーションを停止する', () => {

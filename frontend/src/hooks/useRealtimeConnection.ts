@@ -6,7 +6,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSocket } from './useSocket';
-import { socketSelectors, setAutoReconnect, resetReconnectAttempts } from '@/store/slices/socketSlice';
+import {
+  socketSelectors,
+  setAutoReconnect,
+  resetReconnectAttempts,
+} from '@/store/slices/socketSlice';
 import { AppDispatch } from '@/store';
 
 /**
@@ -60,12 +64,14 @@ export interface UseRealtimeConnectionReturn {
  * @param options 設定オプション
  * @returns 接続状態と操作関数
  */
-export const useRealtimeConnection = (options: {
-  autoConnect?: boolean;
-  enableQualityMonitoring?: boolean;
-  qualityCheckInterval?: number;
-  enableNetworkStateMonitoring?: boolean;
-} = {}): UseRealtimeConnectionReturn => {
+export const useRealtimeConnection = (
+  options: {
+    autoConnect?: boolean;
+    enableQualityMonitoring?: boolean;
+    qualityCheckInterval?: number;
+    enableNetworkStateMonitoring?: boolean;
+  } = {}
+): UseRealtimeConnectionReturn => {
   const {
     autoConnect = false,
     enableQualityMonitoring = true,
@@ -74,7 +80,7 @@ export const useRealtimeConnection = (options: {
   } = options;
 
   const dispatch = useDispatch<AppDispatch>();
-  const { connect, disconnect, emit, isConnected: socketIsConnected } = useSocket(autoConnect);
+  const { connect, disconnect } = useSocket(autoConnect);
 
   // Redux状態を取得
   const connectionState = useSelector(socketSelectors.getConnectionState);
@@ -85,7 +91,8 @@ export const useRealtimeConnection = (options: {
 
   // ローカル状態
   const [networkState, setNetworkState] = useState<NetworkState>('online');
-  const [connectionQuality, setConnectionQuality] = useState<ConnectionQuality>('disconnected');
+  const [connectionQuality, setConnectionQuality] =
+    useState<ConnectionQuality>('disconnected');
   const [stats, setStats] = useState<ConnectionStats>({
     connectedTime: 0,
     disconnectedTime: 0,
@@ -95,7 +102,9 @@ export const useRealtimeConnection = (options: {
   });
   const [latencyHistory, setLatencyHistory] = useState<number[]>([]);
   const [connectStartTime, setConnectStartTime] = useState<number | null>(null);
-  const [disconnectStartTime, setDisconnectStartTime] = useState<number | null>(null);
+  const [disconnectStartTime, setDisconnectStartTime] = useState<number | null>(
+    null
+  );
 
   // ========== 操作関数 ==========
 
@@ -109,11 +118,11 @@ export const useRealtimeConnection = (options: {
     setTimeout(() => {
       connect();
     }, 1000);
-    
+
     // 再接続回数をリセット
     dispatch(resetReconnectAttempts());
-    
-    setStats(prev => ({
+
+    setStats((prev) => ({
       ...prev,
       reconnectCount: prev.reconnectCount + 1,
     }));
@@ -145,28 +154,30 @@ export const useRealtimeConnection = (options: {
         return;
       }
 
-      const startTime = Date.now();
-      
       // 一時的にconnect_errorイベントを使用してレスポンス時間を測定
       // 実際の本番環境では適切なpingイベントを実装する必要があります
       const measureLatency = () => {
         const latency = 100 + Math.random() * 50; // 模擬レイテンシ
-        
+
         // レイテンシ履歴を更新
-        setLatencyHistory(prev => {
+        setLatencyHistory((prev) => {
           const newHistory = [...prev, latency].slice(-10); // 最新10件を保持
           return newHistory;
         });
-        
+
         // 統計情報を更新
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
           lastLatency: latency,
-          averageLatency: latencyHistory.length > 0 
-            ? Math.round(latencyHistory.reduce((sum, l) => sum + l, 0) / latencyHistory.length)
-            : latency,
+          averageLatency:
+            latencyHistory.length > 0
+              ? Math.round(
+                  latencyHistory.reduce((sum, l) => sum + l, 0) /
+                    latencyHistory.length
+                )
+              : latency,
         }));
-        
+
         resolve(latency);
       };
 
@@ -212,7 +223,7 @@ export const useRealtimeConnection = (options: {
     const handleOnline = () => {
       console.log('🌐 ネットワークがオンラインになりました');
       setNetworkState('online');
-      
+
       // オンライン復帰時に自動再接続が有効な場合は再接続を試行
       if (settings.autoReconnect && !isConnected) {
         setTimeout(() => {
@@ -238,7 +249,12 @@ export const useRealtimeConnection = (options: {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [settings.autoReconnect, isConnected, connect]);
+  }, [
+    settings.autoReconnect,
+    isConnected,
+    connect,
+    enableNetworkStateMonitoring,
+  ]);
 
   /**
    * 接続品質の定期監視
@@ -253,7 +269,7 @@ export const useRealtimeConnection = (options: {
         await pingServer();
         const quality = checkConnectionQuality();
         setConnectionQuality(quality);
-        
+
         if (quality === 'poor') {
           console.warn('⚠️ 接続品質が低下しています');
         }
@@ -266,7 +282,13 @@ export const useRealtimeConnection = (options: {
     return () => {
       clearInterval(interval);
     };
-  }, [enableQualityMonitoring, isConnected, qualityCheckInterval, pingServer, checkConnectionQuality]);
+  }, [
+    enableQualityMonitoring,
+    isConnected,
+    qualityCheckInterval,
+    pingServer,
+    checkConnectionQuality,
+  ]);
 
   /**
    * 接続時間の計測
@@ -276,11 +298,11 @@ export const useRealtimeConnection = (options: {
       // 接続開始時間を記録
       setConnectStartTime(Date.now());
       setConnectionQuality(checkConnectionQuality());
-      
+
       // 切断時間の計算（前回切断していた場合）
       if (disconnectStartTime) {
         const disconnectedDuration = Date.now() - disconnectStartTime;
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
           disconnectedTime: prev.disconnectedTime + disconnectedDuration,
         }));
@@ -290,18 +312,23 @@ export const useRealtimeConnection = (options: {
       // 切断開始時間を記録
       setDisconnectStartTime(Date.now());
       setConnectionQuality('disconnected');
-      
+
       // 接続時間の計算（前回接続していた場合）
       if (connectStartTime) {
         const connectedDuration = Date.now() - connectStartTime;
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
           connectedTime: prev.connectedTime + connectedDuration,
         }));
         setConnectStartTime(null);
       }
     }
-  }, [isConnected, checkConnectionQuality, connectStartTime, disconnectStartTime]);
+  }, [
+    isConnected,
+    checkConnectionQuality,
+    connectStartTime,
+    disconnectStartTime,
+  ]);
 
   // ========== 戻り値 ==========
 

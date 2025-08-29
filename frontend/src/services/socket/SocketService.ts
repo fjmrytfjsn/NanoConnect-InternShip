@@ -8,12 +8,17 @@ import {
   ServerToClientEvents,
   ClientToServerEvents,
   SocketErrorEvent,
-  NotificationEvent
+  NotificationEvent,
 } from 'nanoconnect-internship/shared/types/socket';
 import { API_BASE_URL } from '@/constants/api';
 
 // 接続状態の型定義
-export type ConnectionState = 'connected' | 'connecting' | 'disconnected' | 'reconnecting' | 'error';
+export type ConnectionState =
+  | 'connected'
+  | 'connecting'
+  | 'disconnected'
+  | 'reconnecting'
+  | 'error';
 
 // Socket.IOクライアントの型定義
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -47,7 +52,8 @@ export class SocketService {
   private socket: TypedSocket | null = null;
   private connectionState: ConnectionState = 'disconnected';
   private config: SocketServiceConfig;
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((...args: unknown[]) => void)[]> =
+    new Map();
   private reconnectTimer: NodeJS.Timeout | null = null;
   private manualDisconnect = false;
 
@@ -146,14 +152,16 @@ export class SocketService {
       this.initialize();
     }
 
-    // @ts-ignore - Socket.IO型の制約のため
+    // @ts-expect-error Socket.IO型の制約のため型キャストが必要
     this.socket!.on(event, listener);
-    
+
     // 内部リストに追加（クリーンアップ用）
     if (!this.eventListeners.has(event as string)) {
       this.eventListeners.set(event as string, []);
     }
-    this.eventListeners.get(event as string)!.push(listener);
+    this.eventListeners
+      .get(event as string)!
+      .push(listener as (...args: unknown[]) => void);
   }
 
   /**
@@ -166,13 +174,15 @@ export class SocketService {
     if (!this.socket) return;
 
     if (listener) {
-      // @ts-ignore - Socket.IO型の制約のため
+      // @ts-expect-error Socket.IO型の制約のため型キャストが必要
       this.socket.off(event, listener);
-      
+
       // 内部リストからも削除
       const listeners = this.eventListeners.get(event as string);
       if (listeners) {
-        const index = listeners.indexOf(listener);
+        const index = listeners.indexOf(
+          listener as (...args: unknown[]) => void
+        );
         if (index > -1) {
           listeners.splice(index, 1);
         }
@@ -200,7 +210,6 @@ export class SocketService {
       return;
     }
 
-    // @ts-ignore - Socket.IO型の制約のため
     this.socket.emit(event, ...args);
   }
 
@@ -234,8 +243,10 @@ export class SocketService {
     // 接続成功
     this.socket.on('connect', () => {
       this.setConnectionState('connected');
-      console.log(`✅ Socket.IO サーバーに接続しました (ID: ${this.socket?.id})`);
-      
+      console.log(
+        `✅ Socket.IO サーバーに接続しました (ID: ${this.socket?.id})`
+      );
+
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
@@ -246,7 +257,7 @@ export class SocketService {
     this.socket.on('disconnect', (reason) => {
       this.setConnectionState('disconnected');
       console.log(`🔌 Socket.IO サーバーから切断されました: ${reason}`);
-      
+
       // 手動切断でない場合は再接続を試行
       if (!this.manualDisconnect && this.config.reconnection) {
         this.scheduleReconnect();
@@ -254,21 +265,23 @@ export class SocketService {
     });
 
     // 再接続試行
-    // @ts-ignore - Socket.IOの標準イベントのため
+    // @ts-expect-error Socket.IOの標準イベントのため型定義が不一致
     this.socket.on('reconnect_attempt', (attemptNumber: number) => {
       this.setConnectionState('reconnecting');
-      console.log(`🔄 Socket.IO 再接続試行中... (${attemptNumber}/${this.config.reconnectionAttempts})`);
+      console.log(
+        `🔄 Socket.IO 再接続試行中... (${attemptNumber}/${this.config.reconnectionAttempts})`
+      );
     });
 
     // 再接続成功
-    // @ts-ignore - Socket.IOの標準イベントのため
+    // @ts-expect-error Socket.IOの標準イベントのため型定義が不一致
     this.socket.on('reconnect', (attemptNumber: number) => {
       this.setConnectionState('connected');
       console.log(`✅ Socket.IO 再接続成功 (試行回数: ${attemptNumber})`);
     });
 
     // 再接続失敗
-    // @ts-ignore - Socket.IOの標準イベントのため
+    // @ts-expect-error Socket.IOの標準イベントのため型定義が不一致
     this.socket.on('reconnect_failed', () => {
       this.setConnectionState('error');
       console.error('❌ Socket.IO 再接続に失敗しました');
@@ -299,9 +312,11 @@ export class SocketService {
       this.connectionState = state;
       // 状態変更のカスタムイベントを発火（フックで使用）
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('socketConnectionStateChanged', {
-          detail: { state }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('socketConnectionStateChanged', {
+            detail: { state },
+          })
+        );
       }
     }
   }

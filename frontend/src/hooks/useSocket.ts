@@ -5,15 +5,18 @@
 
 import { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { socketService, ConnectionState } from '@/services/socket/SocketService';
+import {
+  socketService,
+  ConnectionState,
+} from '@/services/socket/SocketService';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
 } from 'nanoconnect-internship/shared/types/socket';
+import { ResponseData } from 'nanoconnect-internship/shared/types/api';
 import {
   setConnectionState,
   setError,
-  clearError,
   updatePresentation,
   startPresentation,
   stopPresentation,
@@ -45,12 +48,16 @@ export const useSocket = (autoConnect: boolean = false) => {
       socketService.connect();
     } catch (error) {
       console.error('❌ Socket.IO接続エラー:', error);
-      dispatch(setError({
-        message: 'Socket.IO接続に失敗しました',
-        code: 'CONNECTION_ERROR',
-        details: { error: error instanceof Error ? error.message : 'Unknown error' },
-        timestamp: new Date().toISOString(),
-      }));
+      dispatch(
+        setError({
+          message: 'Socket.IO接続に失敗しました',
+          code: 'CONNECTION_ERROR',
+          details: {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+          timestamp: new Date().toISOString(),
+        })
+      );
     }
   }, [dispatch]);
 
@@ -68,50 +75,70 @@ export const useSocket = (autoConnect: boolean = false) => {
   /**
    * サーバーにイベントを送信
    */
-  const emit = useCallback(<K extends keyof ClientToServerEvents>(
-    event: K,
-    ...args: Parameters<ClientToServerEvents[K]>
-  ) => {
-    try {
-      socketService.emit(event, ...args);
-    } catch (error) {
-      console.error(`❌ Socket.IOイベント送信エラー (${event}):`, error);
-      dispatch(setError({
-        message: `イベント送信に失敗しました: ${event}`,
-        code: 'EMIT_ERROR',
-        details: { event, error: error instanceof Error ? error.message : 'Unknown error' },
-        timestamp: new Date().toISOString(),
-      }));
-    }
-  }, [dispatch]);
+  const emit = useCallback(
+    <K extends keyof ClientToServerEvents>(
+      event: K,
+      ...args: Parameters<ClientToServerEvents[K]>
+    ) => {
+      try {
+        socketService.emit(event, ...args);
+      } catch (error) {
+        console.error(`❌ Socket.IOイベント送信エラー (${event}):`, error);
+        dispatch(
+          setError({
+            message: `イベント送信に失敗しました: ${event}`,
+            code: 'EMIT_ERROR',
+            details: {
+              event,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+            timestamp: new Date().toISOString(),
+          })
+        );
+      }
+    },
+    [dispatch]
+  );
 
   /**
    * サーバーからのイベントを監視
    */
-  const on = useCallback(<K extends keyof ServerToClientEvents>(
-    event: K,
-    listener: ServerToClientEvents[K]
-  ) => {
-    try {
-      socketService.on(event, listener);
-    } catch (error) {
-      console.error(`❌ Socket.IOイベントリスナー登録エラー (${event}):`, error);
-    }
-  }, []);
+  const on = useCallback(
+    <K extends keyof ServerToClientEvents>(
+      event: K,
+      listener: ServerToClientEvents[K]
+    ) => {
+      try {
+        socketService.on(event, listener);
+      } catch (error) {
+        console.error(
+          `❌ Socket.IOイベントリスナー登録エラー (${event}):`,
+          error
+        );
+      }
+    },
+    []
+  );
 
   /**
    * イベントリスナーを削除
    */
-  const off = useCallback(<K extends keyof ServerToClientEvents>(
-    event: K,
-    listener?: ServerToClientEvents[K]
-  ) => {
-    try {
-      socketService.off(event, listener);
-    } catch (error) {
-      console.error(`❌ Socket.IOイベントリスナー削除エラー (${event}):`, error);
-    }
-  }, []);
+  const off = useCallback(
+    <K extends keyof ServerToClientEvents>(
+      event: K,
+      listener?: ServerToClientEvents[K]
+    ) => {
+      try {
+        socketService.off(event, listener);
+      } catch (error) {
+        console.error(
+          `❌ Socket.IOイベントリスナー削除エラー (${event}):`,
+          error
+        );
+      }
+    },
+    []
+  );
 
   /**
    * 接続状態を取得
@@ -132,69 +159,97 @@ export const useSocket = (autoConnect: boolean = false) => {
   /**
    * プレゼンテーションに参加
    */
-  const joinPresentation = useCallback((accessCode: string, callback?: (response: any) => void) => {
-    emit('join:presentation', { accessCode }, callback || (() => {}));
-  }, [emit]);
+  const joinPresentation = useCallback(
+    (accessCode: string, callback?: (response: unknown) => void) => {
+      emit('join:presentation', { accessCode }, callback || (() => {}));
+    },
+    [emit]
+  );
 
   /**
    * プレゼンテーションから退出
    */
-  const leavePresentation = useCallback((presentationId: string, sessionId: string) => {
-    emit('leave:presentation', { presentationId, sessionId });
-  }, [emit]);
+  const leavePresentation = useCallback(
+    (presentationId: string, sessionId: string) => {
+      emit('leave:presentation', { presentationId, sessionId });
+    },
+    [emit]
+  );
 
   /**
    * 回答を送信
    */
-  const submitResponse = useCallback((
-    presentationId: string, 
-    slideId: string, 
-    responseData: any,
-    sessionId: string,
-    callback?: (response: any) => void
-  ) => {
-    emit('submit:response', { 
-      presentationId, 
-      slideId, 
-      responseData,
-      sessionId
-    }, callback || (() => {}));
-  }, [emit]);
+  const submitResponse = useCallback(
+    (
+      presentationId: string,
+      slideId: string,
+      responseData: ResponseData,
+      sessionId: string,
+      callback?: (response: unknown) => void
+    ) => {
+      emit(
+        'submit:response',
+        {
+          presentationId,
+          slideId,
+          responseData,
+          sessionId,
+        },
+        callback || (() => {})
+      );
+    },
+    [emit]
+  );
 
   /**
    * プレゼンテーション制御 - 開始
    */
-  const startPresentationControl = useCallback((presentationId: string) => {
-    emit('control:start', { presentationId });
-  }, [emit]);
+  const startPresentationControl = useCallback(
+    (presentationId: string) => {
+      emit('control:start', { presentationId });
+    },
+    [emit]
+  );
 
   /**
    * プレゼンテーション制御 - 停止
    */
-  const stopPresentationControl = useCallback((presentationId: string) => {
-    emit('control:stop', { presentationId });
-  }, [emit]);
+  const stopPresentationControl = useCallback(
+    (presentationId: string) => {
+      emit('control:stop', { presentationId });
+    },
+    [emit]
+  );
 
   /**
    * スライド制御 - 次のスライド
    */
-  const nextSlide = useCallback((presentationId: string) => {
-    emit('control:next-slide', { presentationId });
-  }, [emit]);
+  const nextSlide = useCallback(
+    (presentationId: string) => {
+      emit('control:next-slide', { presentationId });
+    },
+    [emit]
+  );
 
   /**
    * スライド制御 - 前のスライド
    */
-  const prevSlide = useCallback((presentationId: string) => {
-    emit('control:prev-slide', { presentationId });
-  }, [emit]);
+  const prevSlide = useCallback(
+    (presentationId: string) => {
+      emit('control:prev-slide', { presentationId });
+    },
+    [emit]
+  );
 
   /**
    * スライド制御 - 指定スライドに移動
    */
-  const gotoSlide = useCallback((presentationId: string, slideIndex: number) => {
-    emit('control:goto-slide', { presentationId, slideIndex });
-  }, [emit]);
+  const gotoSlide = useCallback(
+    (presentationId: string, slideIndex: number) => {
+      emit('control:goto-slide', { presentationId, slideIndex });
+    },
+    [emit]
+  );
 
   // ========== イベントリスナー設定 ==========
 
@@ -207,7 +262,10 @@ export const useSocket = (autoConnect: boolean = false) => {
 
     // カスタムイベントリスナーを登録
     if (typeof window !== 'undefined') {
-      window.addEventListener('socketConnectionStateChanged', handleConnectionStateChange as EventListener);
+      window.addEventListener(
+        'socketConnectionStateChanged',
+        handleConnectionStateChange as EventListener
+      );
     }
 
     // Socket.IOイベントリスナーを設定
@@ -274,7 +332,10 @@ export const useSocket = (autoConnect: boolean = false) => {
     // クリーンアップ関数
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('socketConnectionStateChanged', handleConnectionStateChange as EventListener);
+        window.removeEventListener(
+          'socketConnectionStateChanged',
+          handleConnectionStateChange as EventListener
+        );
       }
     };
   }, [dispatch, connect, autoConnect]);
@@ -290,19 +351,19 @@ export const useSocket = (autoConnect: boolean = false) => {
     off,
     getConnectionState,
     isConnected,
-    
+
     // プレゼンテーション操作
     joinPresentation,
     leavePresentation,
     submitResponse,
-    
+
     // プレゼンテーション制御
     startPresentationControl,
     stopPresentationControl,
     nextSlide,
     prevSlide,
     gotoSlide,
-    
+
     // サービスインスタンス（低レベルアクセス用）
     service: socketService,
   };
