@@ -20,7 +20,7 @@ describe('ErrorHandler', () => {
   beforeEach(() => {
     console.error = jest.fn();
     console.warn = jest.fn();
-    
+
     // localStorageのモック
     Object.defineProperty(window, 'localStorage', {
       value: {
@@ -169,11 +169,14 @@ describe('ErrorHandler', () => {
 
       logError(mockError, 'test context');
 
-      expect(console.error).toHaveBeenCalledWith('🚨 Application Error:', expect.objectContaining({
-        ...mockError,
-        context: 'test context',
-        url: 'http://localhost:3000/dashboard',
-      }));
+      expect(console.error).toHaveBeenCalledWith(
+        '🚨 Application Error:',
+        expect.objectContaining({
+          ...mockError,
+          context: 'test context',
+          url: 'http://localhost:3000/dashboard',
+        })
+      );
 
       expect(console.error).toHaveBeenCalledWith(
         'Original error stack:',
@@ -245,8 +248,14 @@ describe('ErrorHandler', () => {
 
       setupGlobalErrorHandler();
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith('unhandledrejection', expect.any(Function));
-      expect(addEventListenerSpy).toHaveBeenCalledWith('error', expect.any(Function));
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'unhandledrejection',
+        expect.any(Function)
+      );
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'error',
+        expect.any(Function)
+      );
 
       addEventListenerSpy.mockRestore();
     });
@@ -270,8 +279,12 @@ describe('ErrorHandler', () => {
 
         errorRecovery.handleAuthError();
 
-        expect(localStorage.removeItem).toHaveBeenCalledWith('nanoconnect_auth_token');
-        expect(mockLocationHref).toHaveBeenCalledWith('/login?redirect=%2Fdashboard');
+        expect(localStorage.removeItem).toHaveBeenCalledWith(
+          'nanoconnect_auth_token'
+        );
+        expect(mockLocationHref).toHaveBeenCalledWith(
+          '/login?redirect=%2Fdashboard'
+        );
       });
 
       it('ログインページにいる場合はリダイレクトしない', () => {
@@ -289,7 +302,9 @@ describe('ErrorHandler', () => {
 
         errorRecovery.handleAuthError();
 
-        expect(localStorage.removeItem).toHaveBeenCalledWith('nanoconnect_auth_token');
+        expect(localStorage.removeItem).toHaveBeenCalledWith(
+          'nanoconnect_auth_token'
+        );
         expect(mockLocationHref).not.toHaveBeenCalled();
       });
     });

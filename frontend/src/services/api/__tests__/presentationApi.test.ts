@@ -224,7 +224,9 @@ describe('PresentationApi', () => {
 
       const result = await presentationApi.changeSlide(1, 2);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/presentations/1/slide', { slideIndex: 2 });
+      expect(mockApi.post).toHaveBeenCalledWith('/presentations/1/slide', {
+        slideIndex: 2,
+      });
       expect(result).toEqual(mockResponse);
     });
 
@@ -258,7 +260,9 @@ describe('PresentationApi', () => {
 
       const result = await presentationApi.previousSlide(1);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/presentations/1/previous-slide');
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/presentations/1/previous-slide'
+      );
       expect(result).toEqual(mockResponse);
     });
   });
@@ -290,7 +294,10 @@ describe('PresentationApi', () => {
 
       const result = await presentationApi.join(requestData);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/presentations/join', requestData);
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/presentations/join',
+        requestData
+      );
       expect(result).toEqual(mockResponse);
     });
   });
@@ -336,7 +343,9 @@ describe('PresentationApi', () => {
 
       await presentationApi.search('test query');
 
-      expect(mockApi.get).toHaveBeenCalledWith('/presentations/search?q=test+query');
+      expect(mockApi.get).toHaveBeenCalledWith(
+        '/presentations/search?q=test+query'
+      );
     });
 
     it('フィルター付きの検索を実行する', async () => {
@@ -384,7 +393,10 @@ describe('PresentationApi', () => {
 
       mockApi.post.mockResolvedValue(mockResponse);
 
-      const result = await presentationApi.duplicate(1, 'Copy of Test Presentation');
+      const result = await presentationApi.duplicate(
+        1,
+        'Copy of Test Presentation'
+      );
 
       expect(mockApi.post).toHaveBeenCalledWith('/presentations/1/duplicate', {
         title: 'Copy of Test Presentation',

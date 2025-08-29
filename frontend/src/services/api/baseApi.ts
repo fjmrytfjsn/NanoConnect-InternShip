@@ -3,7 +3,12 @@
  * HTTP通信、エラーハンドリング、インターセプターの実装
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+} from 'axios';
 import { ApiResponse, ApiError } from '../../../../shared/types/common';
 import { API_BASE_URL } from '../../constants/api';
 
@@ -102,10 +107,13 @@ export class ApiClient {
 
         // リクエストログ（開発時のみ）
         if (process.env.NODE_ENV === 'development') {
-          console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-            data: config.data,
-            params: config.params,
-          });
+          console.log(
+            `🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+            {
+              data: config.data,
+              params: config.params,
+            }
+          );
         }
 
         return config;
@@ -120,10 +128,13 @@ export class ApiClient {
       (response: AxiosResponse) => {
         // レスポンスログ（開発時のみ）
         if (process.env.NODE_ENV === 'development') {
-          console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-            status: response.status,
-            data: response.data,
-          });
+          console.log(
+            `✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`,
+            {
+              status: response.status,
+              data: response.data,
+            }
+          );
         }
 
         return response;
@@ -149,10 +160,13 @@ export class ApiClient {
 
     // エラーログ（開発時のみ）
     if (process.env.NODE_ENV === 'development') {
-      console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
-        status,
-        data,
-      });
+      console.error(
+        `❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
+        {
+          status,
+          data,
+        }
+      );
     }
 
     // 認証エラーの場合、トークンをクリア
@@ -221,10 +235,7 @@ export class ApiClient {
   /**
    * GETリクエスト
    */
-  public async get<T>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.get<T>(url, config);
     return response.data;
   }
@@ -268,10 +279,7 @@ export class ApiClient {
   /**
    * DELETEリクエスト
    */
-  public async delete<T>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.delete<T>(url, config);
     return response.data;
   }
@@ -344,7 +352,11 @@ export class ApiClient {
         }
 
         // 4xx エラーの場合はリトライしない
-        if (error instanceof ApiClientError && error.status >= 400 && error.status < 500) {
+        if (
+          error instanceof ApiClientError &&
+          error.status >= 400 &&
+          error.status < 500
+        ) {
           throw error;
         }
 
@@ -362,14 +374,16 @@ export const apiClient = new ApiClient();
 
 // エクスポート用のヘルパー関数
 export const api = {
-  get: <T>(url: string, config?: AxiosRequestConfig) => apiClient.get<T>(url, config),
-  post: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) => 
+  get: <T>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.get<T>(url, config),
+  post: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.post<T, D>(url, data, config),
-  put: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) => 
+  put: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.put<T, D>(url, data, config),
-  patch: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) => 
+  patch: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.patch<T, D>(url, data, config),
-  delete: <T>(url: string, config?: AxiosRequestConfig) => apiClient.delete<T>(url, config),
+  delete: <T>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.delete<T>(url, config),
   setAuthToken: (token: string) => apiClient.setAuthToken(token),
   clearAuthToken: () => apiClient.clearAuthToken(),
   isAuthenticated: () => apiClient.isAuthenticated(),

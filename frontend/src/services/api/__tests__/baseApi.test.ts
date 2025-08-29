@@ -2,7 +2,12 @@
  * BaseAPI のテスト
  */
 
-import { ApiClient, ApiClientError, NetworkError, HTTP_STATUS } from '../baseApi';
+import {
+  ApiClient,
+  ApiClientError,
+  NetworkError,
+  HTTP_STATUS,
+} from '../baseApi';
 import axios from 'axios';
 
 // axiosをモック
@@ -37,7 +42,7 @@ describe('ApiClient', () => {
       baseURL: 'http://localhost:3000/api',
       timeout: 5000,
     });
-    
+
     // localStorageのモック
     Object.defineProperty(window, 'localStorage', {
       value: {
@@ -79,30 +84,35 @@ describe('ApiClient', () => {
     it('トークンを設定できる', () => {
       const token = 'test-token';
       apiClient.setAuthToken(token);
-      
-      expect(localStorage.setItem).toHaveBeenCalledWith('nanoconnect_auth_token', token);
+
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'nanoconnect_auth_token',
+        token
+      );
     });
 
     it('トークンをクリアできる', () => {
       apiClient.clearAuthToken();
-      
-      expect(localStorage.removeItem).toHaveBeenCalledWith('nanoconnect_auth_token');
+
+      expect(localStorage.removeItem).toHaveBeenCalledWith(
+        'nanoconnect_auth_token'
+      );
     });
 
     it('認証状態を確認できる', () => {
       (localStorage.getItem as jest.Mock).mockReturnValue('test-token');
-      
+
       expect(apiClient.isAuthenticated()).toBe(true);
-      
+
       (localStorage.getItem as jest.Mock).mockReturnValue(null);
-      
+
       expect(apiClient.isAuthenticated()).toBe(false);
     });
   });
 
   describe('HTTP メソッド', () => {
     let mockAxiosInstance: any;
-    
+
     beforeEach(() => {
       // メソッドのモックをリセット
       jest.clearAllMocks();
@@ -127,7 +137,11 @@ describe('ApiClient', () => {
 
       const result = await apiClient.post('/test', requestData);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/test', requestData, undefined);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+        '/test',
+        requestData,
+        undefined
+      );
       expect(result).toEqual(responseData);
     });
 
@@ -138,7 +152,11 @@ describe('ApiClient', () => {
 
       const result = await apiClient.put('/test/1', requestData);
 
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/test/1', requestData, undefined);
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
+        '/test/1',
+        requestData,
+        undefined
+      );
       expect(result).toEqual(responseData);
     });
 
@@ -148,7 +166,10 @@ describe('ApiClient', () => {
 
       const result = await apiClient.delete('/test/1');
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/test/1', undefined);
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith(
+        '/test/1',
+        undefined
+      );
       expect(result).toEqual(responseData);
     });
   });
@@ -164,7 +185,8 @@ describe('ApiClient', () => {
     });
 
     it('失敗した場合は指定回数リトライする', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockRejectedValueOnce(new NetworkError('Network error'))
         .mockRejectedValueOnce(new NetworkError('Network error'))
         .mockResolvedValue('success');
@@ -176,25 +198,35 @@ describe('ApiClient', () => {
     });
 
     it('4xx エラーの場合はリトライしない', async () => {
-      const mockFn = jest.fn()
-        .mockRejectedValue(new ApiClientError('Bad Request', HTTP_STATUS.BAD_REQUEST));
+      const mockFn = jest
+        .fn()
+        .mockRejectedValue(
+          new ApiClientError('Bad Request', HTTP_STATUS.BAD_REQUEST)
+        );
 
-      await expect(apiClient.withRetry(mockFn, 3, 10)).rejects.toThrow('Bad Request');
+      await expect(apiClient.withRetry(mockFn, 3, 10)).rejects.toThrow(
+        'Bad Request'
+      );
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
     it('最大リトライ回数を超えた場合はエラーを投げる', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockRejectedValue(new NetworkError('Network error'));
 
-      await expect(apiClient.withRetry(mockFn, 2, 10)).rejects.toThrow('Network error');
+      await expect(apiClient.withRetry(mockFn, 2, 10)).rejects.toThrow(
+        'Network error'
+      );
       expect(mockFn).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('エラーハンドリング', () => {
     it('ApiClientError が正しく生成される', () => {
-      const error = new ApiClientError('Test error', 400, 'TEST_ERROR', { field: 'value' });
+      const error = new ApiClientError('Test error', 400, 'TEST_ERROR', {
+        field: 'value',
+      });
 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe('ApiClientError');
@@ -221,7 +253,7 @@ describe('ApiClient', () => {
 
   describe('safeGet メソッド', () => {
     let mockAxiosInstance: any;
-    
+
     beforeEach(() => {
       // メソッドのモックをリセット
       jest.clearAllMocks();
@@ -258,7 +290,9 @@ describe('ApiClient', () => {
       const error = new Error('Unexpected error');
       mockAxiosInstance.get.mockRejectedValue(error);
 
-      await expect(apiClient.safeGet('/test')).rejects.toThrow('Unexpected error');
+      await expect(apiClient.safeGet('/test')).rejects.toThrow(
+        'Unexpected error'
+      );
     });
   });
 });

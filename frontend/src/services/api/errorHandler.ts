@@ -28,29 +28,29 @@ export const ERROR_CODES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   TIMEOUT_ERROR: 'TIMEOUT_ERROR',
   CONNECTION_REFUSED: 'CONNECTION_REFUSED',
-  
+
   // 認証エラー
   AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
-  
+
   // バリデーションエラー
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   REQUIRED_FIELD: 'REQUIRED_FIELD',
   INVALID_FORMAT: 'INVALID_FORMAT',
-  
+
   // ビジネスロジックエラー
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
   RESOURCE_ALREADY_EXISTS: 'RESOURCE_ALREADY_EXISTS',
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
   INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-  
+
   // サーバーエラー
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // アプリケーションエラー
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   CONFIGURATION_ERROR: 'CONFIGURATION_ERROR',
@@ -61,27 +61,30 @@ export const ERROR_CODES = {
  */
 const ERROR_MESSAGE_MAP: Record<string, string> = {
   [ERROR_CODES.NETWORK_ERROR]: 'インターネット接続を確認してください',
-  [ERROR_CODES.TIMEOUT_ERROR]: 'リクエストがタイムアウトしました。しばらく待ってから再度お試しください',
+  [ERROR_CODES.TIMEOUT_ERROR]:
+    'リクエストがタイムアウトしました。しばらく待ってから再度お試しください',
   [ERROR_CODES.CONNECTION_REFUSED]: 'サーバーに接続できませんでした',
-  
+
   [ERROR_CODES.AUTHENTICATION_FAILED]: 'ログイン情報が正しくありません',
-  [ERROR_CODES.TOKEN_EXPIRED]: 'セッションの有効期限が切れました。再度ログインしてください',
+  [ERROR_CODES.TOKEN_EXPIRED]:
+    'セッションの有効期限が切れました。再度ログインしてください',
   [ERROR_CODES.UNAUTHORIZED]: 'ログインが必要です',
   [ERROR_CODES.FORBIDDEN]: 'この操作を実行する権限がありません',
-  
+
   [ERROR_CODES.VALIDATION_ERROR]: '入力内容に問題があります',
   [ERROR_CODES.REQUIRED_FIELD]: '必須項目を入力してください',
   [ERROR_CODES.INVALID_FORMAT]: '入力形式が正しくありません',
-  
+
   [ERROR_CODES.RESOURCE_NOT_FOUND]: '指定されたリソースが見つかりません',
   [ERROR_CODES.RESOURCE_ALREADY_EXISTS]: '既に存在するリソースです',
   [ERROR_CODES.OPERATION_NOT_ALLOWED]: 'この操作は許可されていません',
   [ERROR_CODES.INSUFFICIENT_PERMISSIONS]: '必要な権限がありません',
-  
+
   [ERROR_CODES.INTERNAL_SERVER_ERROR]: 'サーバーでエラーが発生しました',
   [ERROR_CODES.SERVICE_UNAVAILABLE]: 'サービスが一時的に利用できません',
-  [ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'リクエスト制限を超えました。しばらく待ってから再度お試しください',
-  
+  [ERROR_CODES.RATE_LIMIT_EXCEEDED]:
+    'リクエスト制限を超えました。しばらく待ってから再度お試しください',
+
   [ERROR_CODES.UNKNOWN_ERROR]: '予期しないエラーが発生しました',
   [ERROR_CODES.CONFIGURATION_ERROR]: 'システム設定にエラーがあります',
 };
@@ -91,7 +94,7 @@ const ERROR_MESSAGE_MAP: Record<string, string> = {
  */
 export const convertToAppError = (error: unknown): AppError => {
   const timestamp = new Date().toISOString();
-  
+
   // ApiClientError の場合
   if (error instanceof ApiClientError) {
     return {
@@ -106,7 +109,7 @@ export const convertToAppError = (error: unknown): AppError => {
       retryable: isRetryableError(error.status),
     };
   }
-  
+
   // NetworkError の場合
   if (error instanceof NetworkError) {
     return {
@@ -120,7 +123,7 @@ export const convertToAppError = (error: unknown): AppError => {
       retryable: true,
     };
   }
-  
+
   // 通常のError の場合
   if (error instanceof Error) {
     // 特定のエラーパターンを識別
@@ -136,7 +139,7 @@ export const convertToAppError = (error: unknown): AppError => {
         retryable: true,
       };
     }
-    
+
     if (error.message.includes('validation')) {
       return {
         type: 'validation',
@@ -149,7 +152,7 @@ export const convertToAppError = (error: unknown): AppError => {
         retryable: false,
       };
     }
-    
+
     return {
       type: 'unknown',
       message: error.message,
@@ -161,7 +164,7 @@ export const convertToAppError = (error: unknown): AppError => {
       retryable: false,
     };
   }
-  
+
   // その他の場合
   return {
     type: 'unknown',
@@ -177,7 +180,10 @@ export const convertToAppError = (error: unknown): AppError => {
 /**
  * ユーザーフレンドリーメッセージの取得
  */
-const getUserFriendlyMessage = (code?: string, originalMessage?: string): string => {
+const getUserFriendlyMessage = (
+  code?: string,
+  originalMessage?: string
+): string => {
   if (code && ERROR_MESSAGE_MAP[code]) {
     return ERROR_MESSAGE_MAP[code];
   }
@@ -189,13 +195,13 @@ const getUserFriendlyMessage = (code?: string, originalMessage?: string): string
  */
 const isRecoverableError = (status?: number): boolean => {
   if (!status) return false;
-  
+
   // 4xx系のクライアントエラーは基本的に回復不可能
   // ただし、401(認証), 403(権限)は再ログインで回復可能
   if (status >= 400 && status < 500) {
     return status === 401 || status === 403;
   }
-  
+
   // 5xx系のサーバーエラーは回復可能
   return status >= 500;
 };
@@ -205,7 +211,7 @@ const isRecoverableError = (status?: number): boolean => {
  */
 const isRetryableError = (status?: number): boolean => {
   if (!status) return false;
-  
+
   // リトライ可能なステータスコード
   const retryableStatuses = [
     408, // Request Timeout
@@ -215,7 +221,7 @@ const isRetryableError = (status?: number): boolean => {
     503, // Service Unavailable
     504, // Gateway Timeout
   ];
-  
+
   return retryableStatuses.includes(status);
 };
 
@@ -229,11 +235,11 @@ export const logError = (appError: AppError, context?: string): void => {
     url: window.location.href,
     userAgent: navigator.userAgent,
   };
-  
+
   // 開発環境では詳細ログを出力
   if (process.env.NODE_ENV === 'development') {
     console.error('🚨 Application Error:', logData);
-    
+
     // オリジナルエラーがある場合はスタックトレースも出力
     if (appError.originalError) {
       console.error('Original error stack:', appError.originalError.stack);
@@ -248,7 +254,7 @@ export const logError = (appError: AppError, context?: string): void => {
       context,
     });
   }
-  
+
   // 本番環境では外部ログサービスに送信（例：Sentry, LogRocket）
   // if (process.env.NODE_ENV === 'production' && typeof window.Sentry !== 'undefined') {
   //   window.Sentry.captureException(appError.originalError || new Error(appError.message), {
@@ -267,9 +273,11 @@ export const logError = (appError: AppError, context?: string): void => {
 /**
  * エラー表示用のヘルパー関数
  */
-export const getErrorDisplay = (error: unknown): { title: string; message: string; canRetry: boolean } => {
+export const getErrorDisplay = (
+  error: unknown
+): { title: string; message: string; canRetry: boolean } => {
   const appError = convertToAppError(error);
-  
+
   return {
     title: getErrorTitle(appError.type),
     message: appError.userFriendlyMessage,
@@ -288,7 +296,7 @@ const getErrorTitle = (type: AppError['type']): string => {
     business: '操作エラー',
     unknown: 'エラー',
   };
-  
+
   return titles[type];
 };
 
@@ -300,13 +308,13 @@ export const setupGlobalErrorHandler = (): void => {
   window.addEventListener('unhandledrejection', (event) => {
     const appError = convertToAppError(event.reason);
     logError(appError, 'unhandledrejection');
-    
+
     // 開発環境以外ではデフォルトの動作を防ぐ
     if (process.env.NODE_ENV !== 'development') {
       event.preventDefault();
     }
   });
-  
+
   // 未処理のエラーをキャッチ
   window.addEventListener('error', (event) => {
     const appError = convertToAppError(event.error);
@@ -324,13 +332,14 @@ export const errorRecovery = {
   handleAuthError: () => {
     // トークンクリア
     localStorage.removeItem('nanoconnect_auth_token');
-    
+
     // ログイン画面にリダイレクト
     if (window.location.pathname !== '/login') {
-      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      window.location.href =
+        '/login?redirect=' + encodeURIComponent(window.location.pathname);
     }
   },
-  
+
   /**
    * ネットワークエラーからの復旧
    */
@@ -344,12 +353,14 @@ export const errorRecovery = {
       }, 3000);
     }
   },
-  
+
   /**
    * サーバーエラーからの復旧
    */
   handleServerError: () => {
     // サービス状況を確認するメッセージを表示
-    console.warn('サーバーエラーが発生しました。システム管理者に連絡してください。');
+    console.warn(
+      'サーバーエラーが発生しました。システム管理者に連絡してください。'
+    );
   },
 };

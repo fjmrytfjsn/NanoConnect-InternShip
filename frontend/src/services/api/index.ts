@@ -139,14 +139,21 @@ export const typeGuards = {
   /**
    * ApiResponseが成功レスポンスかどうか判定
    */
-  isSuccessResponse: <T>(response: ApiResponse<T>): response is ApiResponse<T> & { success: true; data: T } => {
+  isSuccessResponse: <T>(
+    response: ApiResponse<T>
+  ): response is ApiResponse<T> & { success: true; data: T } => {
     return response.success === true && response.data !== undefined;
   },
 
   /**
    * ApiResponseがエラーレスポンスかどうか判定
    */
-  isErrorResponse: <T>(response: ApiResponse<T>): response is ApiResponse<T> & { success: false; error: ApiError | string } => {
+  isErrorResponse: <T>(
+    response: ApiResponse<T>
+  ): response is ApiResponse<T> & {
+    success: false;
+    error: ApiError | string;
+  } => {
     return response.success === false && response.error !== undefined;
   },
 

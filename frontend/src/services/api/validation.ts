@@ -4,7 +4,12 @@
  */
 
 import { z } from 'zod';
-import { ApiResponse, ApiError, PaginatedResponse, Pagination } from '../../../../shared/types/common';
+import {
+  ApiResponse,
+  ApiError,
+  PaginatedResponse,
+  Pagination,
+} from '../../../../shared/types/common';
 
 /**
  * 基本スキーマ定義
@@ -49,7 +54,9 @@ export const PaginationSchema = z.object({
 /**
  * ページネーション付きレスポンススキーマ
  */
-export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(
+  itemSchema: T
+) =>
   ApiResponseSchema(z.array(itemSchema)).extend({
     pagination: PaginationSchema,
   }) satisfies z.ZodType<PaginatedResponse<z.infer<T>>>;
@@ -204,17 +211,19 @@ export const validateApiResponse = <T>(
     if (error instanceof z.ZodError) {
       const errorMessage = `API レスポンスのバリデーションに失敗しました${context ? ` (${context})` : ''}`;
       const details = {
-        issues: error.issues.map(issue => ({
+        issues: error.issues.map((issue) => ({
           path: issue.path.join('.'),
           message: issue.message,
           code: issue.code,
         })),
         receivedData: data,
       };
-      
+
       console.error(errorMessage, details);
-      
-      throw new Error(`${errorMessage}: ${error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`);
+
+      throw new Error(
+        `${errorMessage}: ${error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ')}`
+      );
     }
     throw error;
   }
@@ -279,7 +288,11 @@ export class TypeSafeApiClient {
     options?: RequestInit
   ): Promise<TResponse> {
     // リクエストデータをバリデーション
-    const validatedRequest = validateApiResponse(requestSchema, requestData, `POST ${url} request`);
+    const validatedRequest = validateApiResponse(
+      requestSchema,
+      requestData,
+      `POST ${url} request`
+    );
 
     const response = await fetch(url, {
       method: 'POST',
@@ -296,7 +309,11 @@ export class TypeSafeApiClient {
     }
 
     const responseData = await response.json();
-    return validateApiResponse(responseSchema, responseData, `POST ${url} response`);
+    return validateApiResponse(
+      responseSchema,
+      responseData,
+      `POST ${url} response`
+    );
   }
 }
 
@@ -329,27 +346,36 @@ export const CustomValidators = {
   /**
    * プレゼンテーションタイトルの検証
    */
-  presentationTitle: z.string()
+  presentationTitle: z
+    .string()
     .min(1, 'プレゼンテーションタイトルは必須です')
     .max(200, 'プレゼンテーションタイトルは200文字以内で入力してください')
-    .refine((value) => value.trim().length > 0, 'タイトルは空白のみでは設定できません'),
+    .refine(
+      (value) => value.trim().length > 0,
+      'タイトルは空白のみでは設定できません'
+    ),
 
   /**
    * スライド質問文の検証
    */
-  slideQuestion: z.string()
+  slideQuestion: z
+    .string()
     .min(1, '質問文は必須です')
     .max(500, '質問文は500文字以内で入力してください')
-    .refine((value) => value.trim().length > 0, '質問文は空白のみでは設定できません'),
+    .refine(
+      (value) => value.trim().length > 0,
+      '質問文は空白のみでは設定できません'
+    ),
 
   /**
    * 多肢選択式の選択肢検証
    */
-  multipleChoiceOptions: z.array(z.string())
+  multipleChoiceOptions: z
+    .array(z.string())
     .min(2, '選択肢は最低2つ必要です')
     .max(10, '選択肢は最大10個まで設定できます')
     .refine(
-      (options) => options.every(option => option.trim().length > 0),
+      (options) => options.every((option) => option.trim().length > 0),
       '空の選択肢は設定できません'
     )
     .refine(
@@ -360,7 +386,11 @@ export const CustomValidators = {
   /**
    * アクセスコードの検証
    */
-  accessCode: z.string()
+  accessCode: z
+    .string()
     .length(6, 'アクセスコードは6文字で入力してください')
-    .regex(/^[A-Z0-9]+$/, 'アクセスコードは大文字のアルファベットと数字のみ使用できます'),
+    .regex(
+      /^[A-Z0-9]+$/,
+      'アクセスコードは大文字のアルファベットと数字のみ使用できます'
+    ),
 } as const;
