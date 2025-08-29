@@ -105,6 +105,7 @@ validateConfig(config);
 
 // 開発環境でのログ出力
 if (config.nodeEnv === 'development') {
+  // eslint-disable-next-line no-console
   console.log('🔧 アプリケーション設定:', {
     port: config.port,
     nodeEnv: config.nodeEnv,

@@ -9,7 +9,12 @@ import type { DatabaseConfig } from '@/types/common';
 export const databaseConfig: DatabaseConfig = {
   path: config.database.path,
   options: {
-    verbose: config.database.verbose ? console.log : undefined,
+    verbose: config.database.verbose
+      ? (...args: any[]) => {
+          // eslint-disable-next-line no-console
+          console.log(...args);
+        }
+      : undefined,
     fileMustExist: false, // ファイルが存在しない場合は作成
     timeout: 5000, // 5秒のタイムアウト
     readonly: false,
@@ -21,7 +26,13 @@ export const webContainerConfig = {
   database: {
     path: config.database.path,
     options: {
-      verbose: config.nodeEnv === 'development' ? console.log : undefined,
+      verbose:
+        config.nodeEnv === 'development'
+          ? (...args: any[]) => {
+              // eslint-disable-next-line no-console
+              console.log(...args);
+            }
+          : undefined,
       // WebContainer環境ではファイル作成が制限される場合があるため
       fileMustExist: false,
     },
