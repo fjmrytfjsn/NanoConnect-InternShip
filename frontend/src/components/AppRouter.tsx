@@ -4,6 +4,7 @@ import { Layout } from '@/components/common/Layout/Layout';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { SlideEditorDemo } from '@/pages/SlideEditorDemo';
+import { PresenterDashboard } from '@/pages/PresenterDashboard';
 
 export const AppRouter: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ export const AppRouter: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/slide-editor-demo" element={<SlideEditorDemo />} />
+          <Route path="/presenter/dashboard" element={<PresenterDashboard />} />
           <Route path="*" element={<div>404 - ページが見つかりません</div>} />
         </Routes>
       </Layout>
