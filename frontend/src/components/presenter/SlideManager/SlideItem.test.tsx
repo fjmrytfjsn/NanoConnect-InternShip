@@ -21,9 +21,7 @@ const mockSlide: SlideData = {
 
 // テスト用のラッパーコンポーネント
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <DndContext onDragEnd={() => {}}>
-    {children}
-  </DndContext>
+  <DndContext onDragEnd={() => {}}>{children}</DndContext>
 );
 
 describe('SlideItem', () => {
@@ -88,7 +86,9 @@ describe('SlideItem', () => {
       </TestWrapper>
     );
 
-    const slideCard = screen.getByText('テストスライドタイトル').closest('.MuiCard-root');
+    const slideCard = screen
+      .getByText('テストスライドタイトル')
+      .closest('.MuiCard-root');
     if (slideCard) {
       fireEvent.click(slideCard);
       expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -108,8 +108,12 @@ describe('SlideItem', () => {
       </TestWrapper>
     );
 
-    const slideCard = screen.getByText('テストスライドタイトル').closest('.MuiCard-root');
-    expect(slideCard).toHaveStyle({ borderLeft: expect.stringContaining('4px solid') });
+    const slideCard = screen
+      .getByText('テストスライドタイトル')
+      .closest('.MuiCard-root');
+    expect(slideCard).toHaveStyle({
+      borderLeft: expect.stringContaining('4px solid'),
+    });
   });
 
   test('編集不可モードでドラッグハンドルとアクションが表示されない', () => {
@@ -125,8 +129,12 @@ describe('SlideItem', () => {
       </TestWrapper>
     );
 
-    expect(screen.queryByLabelText('スライド 1 を移動')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('スライドアクション')).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('スライド 1 を移動')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('スライドアクション')
+    ).not.toBeInTheDocument();
   });
 
   test('タイトル未設定の場合のフォールバック表示', () => {

@@ -89,7 +89,7 @@ export interface SlideActionsProps {
   compact?: boolean;
 }
 
-export type SlideAction = 
+export type SlideAction =
   | 'edit'
   | 'duplicate'
   | 'delete'

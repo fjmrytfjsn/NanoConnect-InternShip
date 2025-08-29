@@ -12,7 +12,12 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import { SlideManager, SlideData, SlideOrderUpdate, SlideType } from '../components/presenter/SlideManager';
+import {
+  SlideManager,
+  SlideData,
+  SlideOrderUpdate,
+  SlideType,
+} from '../components/presenter/SlideManager';
 
 // デモ用のサンプルデータ
 const createSampleSlides = (): SlideData[] => [
@@ -56,127 +61,156 @@ export const SlideManagerDemo = () => {
   const [message, setMessage] = useState<string>('');
 
   // スライド順序変更処理
-  const handleReorderSlides = useCallback(async (slideOrders: SlideOrderUpdate[]) => {
-    setLoading(true);
-    setMessage('');
-    
-    try {
-      // シミュレート: バックエンドAPIへの順序変更リクエスト
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ローカル状態を更新
-      const updatedSlides = slides.map(slide => {
-        const orderUpdate = slideOrders.find(so => so.slideId === slide.id);
-        return orderUpdate 
-          ? { ...slide, slideOrder: orderUpdate.order, updatedAt: new Date().toISOString() }
-          : slide;
-      });
-      
-      setSlides(updatedSlides.sort((a, b) => a.slideOrder - b.slideOrder));
-      setMessage('スライドの順序を正常に更新しました！');
-      
-    } catch (error) {
-      console.error('スライド順序変更エラー:', error);
-      setMessage('エラー: スライドの順序更新に失敗しました');
-    } finally {
-      setLoading(false);
-    }
-  }, [slides]);
+  const handleReorderSlides = useCallback(
+    async (slideOrders: SlideOrderUpdate[]) => {
+      setLoading(true);
+      setMessage('');
+
+      try {
+        // シミュレート: バックエンドAPIへの順序変更リクエスト
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // ローカル状態を更新
+        const updatedSlides = slides.map((slide) => {
+          const orderUpdate = slideOrders.find((so) => so.slideId === slide.id);
+          return orderUpdate
+            ? {
+                ...slide,
+                slideOrder: orderUpdate.order,
+                updatedAt: new Date().toISOString(),
+              }
+            : slide;
+        });
+
+        setSlides(updatedSlides.sort((a, b) => a.slideOrder - b.slideOrder));
+        setMessage('スライドの順序を正常に更新しました！');
+      } catch (error) {
+        console.error('スライド順序変更エラー:', error);
+        setMessage('エラー: スライドの順序更新に失敗しました');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [slides]
+  );
 
   // 新規スライド追加
-  const handleAddSlide = useCallback((afterIndex?: number) => {
-    const newSlide: SlideData = {
-      id: `slide-${Date.now()}`,
-      presentationId: 'demo-presentation',
-      type: 'multiple_choice',
-      title: `新しいスライド ${slides.length + 1}`,
-      question: '新しい質問をここに入力してください',
-      options: ['選択肢1', '選択肢2'],
-      slideOrder: afterIndex !== undefined ? afterIndex + 1 : slides.length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // 新しいスライドより後の順序を調整
-    const updatedSlides = slides.map(slide => 
-      slide.slideOrder >= newSlide.slideOrder
-        ? { ...slide, slideOrder: slide.slideOrder + 1 }
-        : slide
-    );
-    
-    setSlides([...updatedSlides, newSlide].sort((a, b) => a.slideOrder - b.slideOrder));
-    setMessage(`新しいスライドを追加しました: ${newSlide.title}`);
-  }, [slides]);
+  const handleAddSlide = useCallback(
+    (afterIndex?: number) => {
+      const newSlide: SlideData = {
+        id: `slide-${Date.now()}`,
+        presentationId: 'demo-presentation',
+        type: 'multiple_choice',
+        title: `新しいスライド ${slides.length + 1}`,
+        question: '新しい質問をここに入力してください',
+        options: ['選択肢1', '選択肢2'],
+        slideOrder: afterIndex !== undefined ? afterIndex + 1 : slides.length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // 新しいスライドより後の順序を調整
+      const updatedSlides = slides.map((slide) =>
+        slide.slideOrder >= newSlide.slideOrder
+          ? { ...slide, slideOrder: slide.slideOrder + 1 }
+          : slide
+      );
+
+      setSlides(
+        [...updatedSlides, newSlide].sort((a, b) => a.slideOrder - b.slideOrder)
+      );
+      setMessage(`新しいスライドを追加しました: ${newSlide.title}`);
+    },
+    [slides]
+  );
 
   // スライド編集
-  const handleEditSlide = useCallback((slideId: string) => {
-    const slide = slides.find(s => s.id === slideId);
-    setMessage(`編集画面を開きました: ${slide?.title || slideId}`);
-  }, [slides]);
+  const handleEditSlide = useCallback(
+    (slideId: string) => {
+      const slide = slides.find((s) => s.id === slideId);
+      setMessage(`編集画面を開きました: ${slide?.title || slideId}`);
+    },
+    [slides]
+  );
 
   // スライド複製
-  const handleDuplicateSlide = useCallback((slideId: string) => {
-    const originalSlide = slides.find(s => s.id === slideId);
-    if (!originalSlide) return;
-    
-    const duplicatedSlide: SlideData = {
-      ...originalSlide,
-      id: `slide-${Date.now()}`,
-      title: `${originalSlide.title} (コピー)`,
-      slideOrder: slides.length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    setSlides([...slides, duplicatedSlide]);
-    setMessage(`スライドを複製しました: ${duplicatedSlide.title}`);
-  }, [slides]);
+  const handleDuplicateSlide = useCallback(
+    (slideId: string) => {
+      const originalSlide = slides.find((s) => s.id === slideId);
+      if (!originalSlide) return;
+
+      const duplicatedSlide: SlideData = {
+        ...originalSlide,
+        id: `slide-${Date.now()}`,
+        title: `${originalSlide.title} (コピー)`,
+        slideOrder: slides.length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      setSlides([...slides, duplicatedSlide]);
+      setMessage(`スライドを複製しました: ${duplicatedSlide.title}`);
+    },
+    [slides]
+  );
 
   // スライド削除
-  const handleDeleteSlide = useCallback((slideId: string) => {
-    const slide = slides.find(s => s.id === slideId);
-    const updatedSlides = slides
-      .filter(s => s.id !== slideId)
-      .map((s, index) => ({ ...s, slideOrder: index }));
-    
-    setSlides(updatedSlides);
-    setMessage(`スライドを削除しました: ${slide?.title || slideId}`);
-  }, [slides]);
+  const handleDeleteSlide = useCallback(
+    (slideId: string) => {
+      const slide = slides.find((s) => s.id === slideId);
+      const updatedSlides = slides
+        .filter((s) => s.id !== slideId)
+        .map((s, index) => ({ ...s, slideOrder: index }));
+
+      setSlides(updatedSlides);
+      setMessage(`スライドを削除しました: ${slide?.title || slideId}`);
+    },
+    [slides]
+  );
 
   // スライドタイプ変更
-  const handleChangeSlideType = useCallback((slideId: string, newType: SlideType) => {
-    const updatedSlides = slides.map(slide => 
-      slide.id === slideId 
-        ? { 
-            ...slide, 
-            type: newType,
-            // ワードクラウドに変更する場合は選択肢を削除
-            options: newType === 'word_cloud' ? undefined : slide.options || ['選択肢1', '選択肢2'],
-            updatedAt: new Date().toISOString()
-          }
-        : slide
-    );
-    
-    setSlides(updatedSlides);
-    const slide = slides.find(s => s.id === slideId);
-    const typeLabel = newType === 'multiple_choice' ? '多肢選択式' : 'ワードクラウド';
-    setMessage(`スライドタイプを変更しました: ${slide?.title} → ${typeLabel}`);
-  }, [slides]);
+  const handleChangeSlideType = useCallback(
+    (slideId: string, newType: SlideType) => {
+      const updatedSlides = slides.map((slide) =>
+        slide.id === slideId
+          ? {
+              ...slide,
+              type: newType,
+              // ワードクラウドに変更する場合は選択肢を削除
+              options:
+                newType === 'word_cloud'
+                  ? undefined
+                  : slide.options || ['選択肢1', '選択肢2'],
+              updatedAt: new Date().toISOString(),
+            }
+          : slide
+      );
+
+      setSlides(updatedSlides);
+      const slide = slides.find((s) => s.id === slideId);
+      const typeLabel =
+        newType === 'multiple_choice' ? '多肢選択式' : 'ワードクラウド';
+      setMessage(
+        `スライドタイプを変更しました: ${slide?.title} → ${typeLabel}`
+      );
+    },
+    [slides]
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>
         スライド順序管理UI デモ
       </Typography>
-      
+
       <Typography variant="body1" color="text.secondary" paragraph>
         ドラッグ&ドロップでスライドの順序を変更できます。各スライドのアクションメニューから
         編集、複製、削除、タイプ変更などの操作も可能です。
       </Typography>
 
       {message && (
-        <Alert 
-          severity={message.startsWith('エラー') ? 'error' : 'info'} 
+        <Alert
+          severity={message.startsWith('エラー') ? 'error' : 'info'}
           sx={{ mb: 2 }}
           onClose={() => setMessage('')}
         >
@@ -184,7 +218,10 @@ export const SlideManagerDemo = () => {
         </Alert>
       )}
 
-      <Paper elevation={2} sx={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
+      <Paper
+        elevation={2}
+        sx={{ height: '70vh', display: 'flex', flexDirection: 'column' }}
+      >
         <SlideManager
           presentationId="demo-presentation"
           slides={slides}
@@ -200,20 +237,22 @@ export const SlideManagerDemo = () => {
       </Paper>
 
       <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           onClick={() => setSlides(createSampleSlides())}
         >
           サンプルデータをリセット
         </Button>
-        
-        <Button 
-          variant="outlined" 
+
+        <Button
+          variant="outlined"
           onClick={() => {
             const randomSlides = createSampleSlides();
             // ランダムに順序をシャッフル
             randomSlides.forEach((slide) => {
-              slide.slideOrder = Math.floor(Math.random() * randomSlides.length);
+              slide.slideOrder = Math.floor(
+                Math.random() * randomSlides.length
+              );
             });
             setSlides(randomSlides);
             setMessage('スライドをランダムに並び替えました');
@@ -222,8 +261,8 @@ export const SlideManagerDemo = () => {
           ランダム並び替え
         </Button>
 
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           onClick={() => {
             setLoading(true);
             setTimeout(() => {

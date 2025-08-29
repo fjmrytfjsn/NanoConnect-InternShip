@@ -99,7 +99,11 @@ describe('SlideManager', () => {
     );
 
     expect(screen.getByText('スライドがありません')).toBeInTheDocument();
-    expect(screen.getByText('「新しいスライドを追加」ボタンからスライドを作成してください。')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '「新しいスライドを追加」ボタンからスライドを作成してください。'
+      )
+    ).toBeInTheDocument();
   });
 
   test('ローディング状態が正しく表示される', () => {
@@ -124,7 +128,9 @@ describe('SlideManager', () => {
       />
     );
 
-    const slideCard = screen.getByText('テストスライド1').closest('[role="button"]');
+    const slideCard = screen
+      .getByText('テストスライド1')
+      .closest('[role="button"]');
     if (slideCard) {
       fireEvent.click(slideCard);
       expect(mockHandlers.onEditSlide).toHaveBeenCalledWith('slide-1');
