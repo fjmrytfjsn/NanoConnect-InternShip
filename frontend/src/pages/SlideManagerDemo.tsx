@@ -12,7 +12,7 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import { SlideManager, SlideData, SlideOrderUpdate, SlideAction, SlideType } from '../components/presenter/SlideManager';
+import { SlideManager, SlideData, SlideOrderUpdate, SlideType } from '../components/presenter/SlideManager';
 
 // デモ用のサンプルデータ
 const createSampleSlides = (): SlideData[] => [
@@ -212,7 +212,7 @@ export const SlideManagerDemo = () => {
           onClick={() => {
             const randomSlides = createSampleSlides();
             // ランダムに順序をシャッフル
-            randomSlides.forEach((slide, index) => {
+            randomSlides.forEach((slide) => {
               slide.slideOrder = Math.floor(Math.random() * randomSlides.length);
             });
             setSlides(randomSlides);

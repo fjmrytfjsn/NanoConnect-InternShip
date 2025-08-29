@@ -3,8 +3,8 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SlideManager } from '../SlideManager';
-import { SlideData, SlideOrderUpdate, SlideAction, SlideType } from '../types';
+import { SlideManager } from './SlideManager';
+import { SlideData } from './types';
 
 // テスト用のモックデータ
 const mockSlides: SlideData[] = [
@@ -33,7 +33,7 @@ const mockSlides: SlideData[] = [
 
 // モック関数
 const mockHandlers = {
-  onReorderSlides: jest.fn((slideOrders: SlideOrderUpdate[]) => Promise.resolve()),
+  onReorderSlides: jest.fn(() => Promise.resolve()),
   onAddSlide: jest.fn(),
   onEditSlide: jest.fn(),
   onDuplicateSlide: jest.fn(),
