@@ -11,10 +11,10 @@ import { SQLiteConnection } from '../SQLiteConnection';
 import Database from 'better-sqlite3';
 
 export class SQLiteSlideRepository implements ISlideRepository {
-  constructor(private readonly db: SQLiteConnection) {}
+  constructor(private readonly _db: SQLiteConnection) {}
 
   private getDatabase(): Database.Database {
-    return this.db.getDatabase();
+    return this._db.getDatabase();
   }
 
   async findById(id: SlideId): Promise<Slide | null> {
