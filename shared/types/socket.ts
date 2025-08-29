@@ -185,8 +185,10 @@ export interface SocketErrorEvent {
 }
 
 export interface NotificationEvent {
+  id?: string; // オプションでIDを追加
   type: 'info' | 'warning' | 'error' | 'success';
   title: string;
   message: string;
   timestamp: Timestamp;
+  read?: boolean; // 既読状態を追加
 }
