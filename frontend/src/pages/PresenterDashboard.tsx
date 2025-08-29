@@ -10,6 +10,11 @@ import {
   DialogActions,
   Fab,
   Container,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
+  Divider,
 } from '@mui/material';
 import { Add, Refresh } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,6 +27,14 @@ import {
   removePresentation,
 } from '@/store/slices/presentationSlice';
 import { PresentationList } from '@/components/presenter/PresentationList/PresentationList';
+import {
+  RealtimeControls,
+  ParticipantCounter,
+  ConnectionStatus,
+  RealtimeResults,
+} from '@/components/presenter';
+import { useSocket } from '@/hooks/useSocket';
+import { useRealtimeConnection } from '@/hooks/useRealtimeConnection';
 import { Presentation } from '@/types/common';
 
 // サンプルデータ（後でAPI呼び出しに置き換え）
@@ -76,12 +89,21 @@ export const PresenterDashboard: React.FC = () => {
     (state: RootState) => state.presentation
   );
 
+  // Socket.IOフックの利用
+  const { connect, isConnected } = useSocket();
+  const { connectionState, reconnectAttempts } = useRealtimeConnection();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [presentationToDelete, setPresentationToDelete] = useState<
     number | null
   >(null);
   const [presentationToDeleteTitle, setPresentationToDeleteTitle] =
     useState<string>('');
+
+  // リアルタイム機能の状態
+  const [selectedPresentation, setSelectedPresentation] =
+    useState<Presentation | null>(null);
+  const [showRealtimePanel, setShowRealtimePanel] = useState(false);
 
   const loadPresentations = useCallback(async () => {
     try {
@@ -101,7 +123,11 @@ export const PresenterDashboard: React.FC = () => {
   // コンポーネントマウント時にプレゼンテーション一覧を読み込み
   useEffect(() => {
     loadPresentations();
-  }, [loadPresentations]);
+    // Socket.IO接続を開始
+    if (!isConnected) {
+      connect();
+    }
+  }, [loadPresentations, connect, isConnected]);
 
   const handleCreateNew = () => {
     navigate('/presenter/presentations/new');
@@ -142,16 +168,42 @@ export const PresenterDashboard: React.FC = () => {
     setPresentationToDeleteTitle('');
   };
 
-  const handlePreview = (id: number) => {
-    navigate(`/presenter/presentations/${id}/preview`);
-  };
-
   const handleRefresh = () => {
     loadPresentations();
   };
 
+  // ========== リアルタイム機能ハンドラー ==========
+
+  const handlePresentationSelect = (presentation: Presentation) => {
+    setSelectedPresentation(presentation);
+    setShowRealtimePanel(true);
+  };
+
+  const handleStartPresentation = useCallback((presentationId: number) => {
+    console.log(`リアルタイムプレゼンテーション開始: ${presentationId}`);
+    // 実際の実装では、プレゼンテーション状態をアクティブに更新
+  }, []);
+
+  const handleStopPresentation = useCallback((presentationId: number) => {
+    console.log(`リアルタイムプレゼンテーション停止: ${presentationId}`);
+    // 実際の実装では、プレゼンテーション状態を停止に更新
+  }, []);
+
+  const handleSlideChange = useCallback(
+    (presentationId: number, slideIndex: number) => {
+      console.log(`スライド変更: ${presentationId} - ${slideIndex}`);
+      // 実際の実装では、現在のスライドインデックスを更新
+    },
+    []
+  );
+
+  const handleRealtimePanelClose = () => {
+    setShowRealtimePanel(false);
+    setSelectedPresentation(null);
+  };
+
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl">
       <Box sx={{ py: 3 }}>
         {/* ヘッダー */}
         <Box
@@ -167,7 +219,7 @@ export const PresenterDashboard: React.FC = () => {
               プレゼンテーション管理
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              プレゼンテーションの作成・編集・管理を行います
+              プレゼンテーションの作成・編集・管理とリアルタイム制御を行います
             </Typography>
           </Box>
 
@@ -191,12 +243,130 @@ export const PresenterDashboard: React.FC = () => {
           </Box>
         </Box>
 
-        {/* プレゼンテーション一覧 */}
-        <PresentationList
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onPreview={handlePreview}
-        />
+        {/* 接続状態警告 */}
+        {!isConnected && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            リアルタイム機能を利用するにはSocket.IO接続が必要です。 接続状態:{' '}
+            {connectionState}
+            {reconnectAttempts > 0 && ` (再試行: ${reconnectAttempts}回)`}
+          </Alert>
+        )}
+
+        <Grid container spacing={3}>
+          {/* メインコンテンツエリア */}
+          <Grid item xs={12} lg={showRealtimePanel ? 8 : 12}>
+            {/* プレゼンテーション一覧 */}
+            <PresentationList
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onPreview={(id) => {
+                const presentation = presentations.find((p) => p.id === id);
+                if (presentation) {
+                  handlePresentationSelect(presentation);
+                }
+              }}
+            />
+          </Grid>
+
+          {/* リアルタイムパネル */}
+          {showRealtimePanel && selectedPresentation && (
+            <Grid item xs={12} lg={4}>
+              <Card>
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h6">リアルタイム制御パネル</Typography>
+                    <Button size="small" onClick={handleRealtimePanelClose}>
+                      閉じる
+                    </Button>
+                  </Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    {selectedPresentation.title}
+                  </Typography>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* 接続状態（コンパクト） */}
+                  <Box sx={{ mb: 2 }}>
+                    <ConnectionStatus compact />
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* プレゼンテーション制御（コンパクト） */}
+                  <Box sx={{ mb: 3 }}>
+                    <RealtimeControls
+                      presentationId={selectedPresentation.id}
+                      totalSlides={selectedPresentation.slideCount || 0}
+                      currentSlideIndex={
+                        selectedPresentation.currentSlideIndex || 0
+                      }
+                      onPresentationStart={handleStartPresentation}
+                      onPresentationStop={handleStopPresentation}
+                      onSlideChange={handleSlideChange}
+                      compact
+                    />
+                  </Box>
+
+                  {/* 参加者数（コンパクト） */}
+                  <Box sx={{ mb: 3 }}>
+                    <ParticipantCounter compact showRecentActivity={false} />
+                  </Box>
+
+                  {/* リアルタイム結果（コンパクト） */}
+                  <Box>
+                    <RealtimeResults
+                      compact
+                      showRealtime
+                      showAnalytics
+                      maxResponses={3}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </Grid>
+
+        {/* 詳細なリアルタイム情報（選択されたプレゼンテーションがある場合） */}
+        {selectedPresentation && showRealtimePanel && (
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={6}>
+              <ConnectionStatus showDetails showStats />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <ParticipantCounter
+                showRecentActivity
+                showTrend
+                maxRecentItems={5}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <RealtimeControls
+                presentationId={selectedPresentation.id}
+                totalSlides={selectedPresentation.slideCount || 0}
+                currentSlideIndex={selectedPresentation.currentSlideIndex || 0}
+                onPresentationStart={handleStartPresentation}
+                onPresentationStop={handleStopPresentation}
+                onSlideChange={handleSlideChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <RealtimeResults showRealtime showAnalytics />
+            </Grid>
+          </Grid>
+        )}
 
         {/* フローティングアクションボタン（モバイル用） */}
         <Fab

@@ -30,6 +30,7 @@
     "@types/d3-scale": "^4.0.3",
     "axios": "^1.4.0",
     "chart.js": "^4.3.3",
+    "date-fns": "^4.1.0",
     "nanoconnect-internship": "file:..",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
