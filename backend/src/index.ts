@@ -10,6 +10,7 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { config } from '@/config/app';
 import { SQLiteConnection } from '@/infrastructure/database/SQLiteConnection';
+import { slideRoutes } from '@/presentation/routes/slideRoutes';
 
 class NanoConnectServer {
   private app: express.Application;
@@ -84,6 +85,9 @@ class NanoConnectServer {
    * ルートの設定
    */
   private setupRoutes(): void {
+    // スライドAPI（メインAPI）
+    this.app.use('/api', slideRoutes);
+
     // ヘルスチェックエンドポイント
     this.app.get('/health', (_req, res) => {
       const dbHealth = this.database.healthCheck();
