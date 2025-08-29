@@ -8,13 +8,14 @@ import { PresentationResponseDto } from '../../dtos/presentation/PresentationRes
 import { PresentationId, UserId } from '@/types/common';
 
 export class GetPresentationUseCase {
-  constructor(
-    private readonly presentationRepository: IPresentationRepository
-  ) {}
+  constructor(private readonly presentationRepository: IPresentationRepository) {}
 
-  async execute(presentationId: PresentationId, requesterId: UserId): Promise<PresentationResponseDto> {
+  async execute(
+    presentationId: PresentationId,
+    requesterId: UserId
+  ): Promise<PresentationResponseDto> {
     const presentation = await this.presentationRepository.findById(presentationId);
-    
+
     if (!presentation) {
       throw new Error('プレゼンテーションが見つかりません');
     }
@@ -33,7 +34,7 @@ export class GetPresentationUseCase {
       isActive: presentation.isActive,
       currentSlideIndex: presentation.currentSlideIndex,
       createdAt: presentation.createdAt,
-      updatedAt: presentation.updatedAt
+      updatedAt: presentation.updatedAt,
     };
   }
 }

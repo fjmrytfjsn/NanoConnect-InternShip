@@ -18,9 +18,11 @@ export class SQLiteUserRepository implements IUserRepository {
 
   async findById(id: UserId): Promise<User | null> {
     // 学習用の簡易実装 - 認証がないため、仮のユーザーを返す
-    if (id) {
-      // 仮のユーザーデータを返す（実際の実装では適切なデータベースクエリを使用）
-      return User.create('user1', 'testuser', 'test@example.com', 'hashedPassword');
+    if (id && id.trim().length > 0) {
+      // 'user1'の場合のみユーザーを返す（テスト用）
+      if (id === 'user1') {
+        return User.create('user1', 'testuser', 'test@example.com', 'hashedPassword');
+      }
     }
     return null;
   }

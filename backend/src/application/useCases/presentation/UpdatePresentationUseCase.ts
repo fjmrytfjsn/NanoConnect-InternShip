@@ -4,21 +4,22 @@
  */
 
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
-import { UpdatePresentationDto, UpdatePresentationResponseDto } from '../../dtos/presentation/UpdatePresentationDto';
+import {
+  UpdatePresentationDto,
+  UpdatePresentationResponseDto,
+} from '../../dtos/presentation/UpdatePresentationDto';
 import { PresentationId, UserId } from '@/types/common';
 
 export class UpdatePresentationUseCase {
-  constructor(
-    private readonly presentationRepository: IPresentationRepository
-  ) {}
+  constructor(private readonly presentationRepository: IPresentationRepository) {}
 
   async execute(
-    presentationId: PresentationId, 
-    requesterId: UserId, 
+    presentationId: PresentationId,
+    requesterId: UserId,
     updateData: UpdatePresentationDto
   ): Promise<UpdatePresentationResponseDto> {
     const presentation = await this.presentationRepository.findById(presentationId);
-    
+
     if (!presentation) {
       throw new Error('プレゼンテーションが見つかりません');
     }
@@ -36,7 +37,7 @@ export class UpdatePresentationUseCase {
 
     return {
       success: true,
-      message: 'プレゼンテーションが正常に更新されました'
+      message: 'プレゼンテーションが正常に更新されました',
     };
   }
 }

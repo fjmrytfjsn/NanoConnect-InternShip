@@ -157,13 +157,16 @@ class NanoConnectServer {
   private setupPresentationRoutes(): void {
     // データベース接続
     const dbConnection = SQLiteConnection.getInstance();
-    
+
     // リポジトリの初期化
     const presentationRepository = new SQLitePresentationRepository(dbConnection);
     const userRepository = new SQLiteUserRepository();
 
     // ユースケースの初期化
-    const createPresentationUseCase = new CreatePresentationUseCase(presentationRepository, userRepository);
+    const createPresentationUseCase = new CreatePresentationUseCase(
+      presentationRepository,
+      userRepository
+    );
     const getPresentationUseCase = new GetPresentationUseCase(presentationRepository);
     const listPresentationsUseCase = new ListPresentationsUseCase(presentationRepository);
     const updatePresentationUseCase = new UpdatePresentationUseCase(presentationRepository);

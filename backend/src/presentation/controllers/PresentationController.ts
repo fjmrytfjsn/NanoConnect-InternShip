@@ -3,7 +3,7 @@
  * プレゼンテーション関連のHTTPリクエストを処理
  */
 
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CreatePresentationUseCase } from '@/application/useCases/presentation/CreatePresentationUseCase';
 import { GetPresentationUseCase } from '@/application/useCases/presentation/GetPresentationUseCase';
 import { UpdatePresentationUseCase } from '@/application/useCases/presentation/UpdatePresentationUseCase';
@@ -34,7 +34,7 @@ export class PresentationController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          error: '認証が必要です'
+          error: '認証が必要です',
         });
         return;
       }
@@ -42,7 +42,7 @@ export class PresentationController {
       if (!title || typeof title !== 'string') {
         res.status(400).json({
           success: false,
-          error: 'タイトルは必須です'
+          error: 'タイトルは必須です',
         });
         return;
       }
@@ -50,7 +50,7 @@ export class PresentationController {
       const createDto: CreatePresentationDto = {
         title: title.trim(),
         description: description?.trim(),
-        presenterId: userId
+        presenterId: userId,
       };
 
       const result = await this.createPresentationUseCase.execute(createDto);
@@ -58,13 +58,13 @@ export class PresentationController {
       res.status(201).json({
         success: true,
         data: result,
-        message: 'プレゼンテーションが正常に作成されました'
+        message: 'プレゼンテーションが正常に作成されました',
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました';
       res.status(400).json({
         success: false,
-        error: message
+        error: message,
       });
     }
   }
@@ -80,7 +80,7 @@ export class PresentationController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          error: '認証が必要です'
+          error: '認証が必要です',
         });
         return;
       }
@@ -92,14 +92,14 @@ export class PresentationController {
         data: result.presentations,
         message: 'プレゼンテーション一覧を正常に取得しました',
         meta: {
-          total: result.total
-        }
+          total: result.total,
+        },
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました';
       res.status(500).json({
         success: false,
-        error: message
+        error: message,
       });
     }
   }
@@ -116,7 +116,7 @@ export class PresentationController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          error: '認証が必要です'
+          error: '認証が必要です',
         });
         return;
       }
@@ -124,7 +124,7 @@ export class PresentationController {
       if (!presentationId) {
         res.status(400).json({
           success: false,
-          error: 'プレゼンテーションIDが必要です'
+          error: 'プレゼンテーションIDが必要です',
         });
         return;
       }
@@ -134,26 +134,26 @@ export class PresentationController {
       res.status(200).json({
         success: true,
         data: result,
-        message: 'プレゼンテーション情報を正常に取得しました'
+        message: 'プレゼンテーション情報を正常に取得しました',
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました';
-      
+
       // エラーメッセージに基づいて適切なステータスコードを設定
       if (message.includes('見つかりません')) {
         res.status(404).json({
           success: false,
-          error: message
+          error: message,
         });
       } else if (message.includes('権限がありません')) {
         res.status(403).json({
           success: false,
-          error: message
+          error: message,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: message
+          error: message,
         });
       }
     }
@@ -172,7 +172,7 @@ export class PresentationController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          error: '認証が必要です'
+          error: '認証が必要です',
         });
         return;
       }
@@ -180,40 +180,44 @@ export class PresentationController {
       if (!presentationId) {
         res.status(400).json({
           success: false,
-          error: 'プレゼンテーションIDが必要です'
+          error: 'プレゼンテーションIDが必要です',
         });
         return;
       }
 
       const updateDto: UpdatePresentationDto = {
         title: title?.trim(),
-        description: description?.trim()
+        description: description?.trim(),
       };
 
-      const result = await this.updatePresentationUseCase.execute(presentationId, userId, updateDto);
+      const result = await this.updatePresentationUseCase.execute(
+        presentationId,
+        userId,
+        updateDto
+      );
 
       res.status(200).json({
         success: true,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました';
-      
+
       // エラーメッセージに基づいて適切なステータスコードを設定
       if (message.includes('見つかりません')) {
         res.status(404).json({
           success: false,
-          error: message
+          error: message,
         });
       } else if (message.includes('権限がありません')) {
         res.status(403).json({
           success: false,
-          error: message
+          error: message,
         });
       } else {
         res.status(400).json({
           success: false,
-          error: message
+          error: message,
         });
       }
     }
@@ -231,7 +235,7 @@ export class PresentationController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          error: '認証が必要です'
+          error: '認証が必要です',
         });
         return;
       }
@@ -239,7 +243,7 @@ export class PresentationController {
       if (!presentationId) {
         res.status(400).json({
           success: false,
-          error: 'プレゼンテーションIDが必要です'
+          error: 'プレゼンテーションIDが必要です',
         });
         return;
       }
@@ -248,31 +252,31 @@ export class PresentationController {
 
       res.status(200).json({
         success: true,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました';
-      
+
       // エラーメッセージに基づいて適切なステータスコードを設定
       if (message.includes('見つかりません')) {
         res.status(404).json({
           success: false,
-          error: message
+          error: message,
         });
       } else if (message.includes('権限がありません')) {
         res.status(403).json({
           success: false,
-          error: message
+          error: message,
         });
       } else if (message.includes('削除できません')) {
         res.status(400).json({
           success: false,
-          error: message
+          error: message,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: message
+          error: message,
         });
       }
     }

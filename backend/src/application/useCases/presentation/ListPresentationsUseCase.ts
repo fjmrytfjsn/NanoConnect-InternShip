@@ -8,9 +8,7 @@ import { PresentationListResponseDto } from '../../dtos/presentation/Presentatio
 import { UserId } from '@/types/common';
 
 export class ListPresentationsUseCase {
-  constructor(
-    private readonly presentationRepository: IPresentationRepository
-  ) {}
+  constructor(private readonly presentationRepository: IPresentationRepository) {}
 
   async execute(presenterId: UserId): Promise<PresentationListResponseDto> {
     const presentations = await this.presentationRepository.findByPresenterId(presenterId);
@@ -24,12 +22,12 @@ export class ListPresentationsUseCase {
       isActive: presentation.isActive,
       currentSlideIndex: presentation.currentSlideIndex,
       createdAt: presentation.createdAt,
-      updatedAt: presentation.updatedAt
+      updatedAt: presentation.updatedAt,
     }));
 
     return {
       presentations: presentationDtos,
-      total: presentations.length
+      total: presentations.length,
     };
   }
 }

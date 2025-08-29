@@ -7,7 +7,10 @@ import { Presentation } from '@/domain/entities/Presentation';
 import { AccessCode } from '@/domain/valueObjects/AccessCode';
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
 import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { CreatePresentationDto, CreatePresentationResponseDto } from '../../dtos/presentation/CreatePresentationDto';
+import {
+  CreatePresentationDto,
+  CreatePresentationResponseDto,
+} from '../../dtos/presentation/CreatePresentationDto';
 import { PresentationId } from '@/types/common';
 
 export class CreatePresentationUseCase {
@@ -59,7 +62,7 @@ export class CreatePresentationUseCase {
       isActive: savedPresentation.isActive,
       currentSlideIndex: savedPresentation.currentSlideIndex,
       createdAt: savedPresentation.createdAt,
-      updatedAt: savedPresentation.updatedAt
+      updatedAt: savedPresentation.updatedAt,
     };
   }
 

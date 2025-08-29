@@ -33,10 +33,27 @@ export class Presentation extends Entity<PresentationId> {
     accessCode: AccessCode,
     description?: string
   ): Presentation {
+    // バリデーション
+    if (!title || title.trim().length === 0) {
+      throw new Error('プレゼンテーションのタイトルは必須です');
+    }
+
+    if (title.length > 100) {
+      throw new Error('プレゼンテーションのタイトルは100文字以内で入力してください');
+    }
+
+    if (description && description.length > 1000) {
+      throw new Error('プレゼンテーションの説明は1000文字以内で入力してください');
+    }
+
+    if (!presenterId || presenterId.trim().length === 0) {
+      throw new Error('プレゼンターIDは必須です');
+    }
+
     const now = new Date().toISOString();
     return new Presentation(id, {
-      title,
-      description,
+      title: title.trim(),
+      description: description?.trim(),
       presenterId,
       accessCode,
       isActive: false,

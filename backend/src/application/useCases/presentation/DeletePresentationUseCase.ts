@@ -8,16 +8,14 @@ import { DeletePresentationResponseDto } from '../../dtos/presentation/Presentat
 import { PresentationId, UserId } from '@/types/common';
 
 export class DeletePresentationUseCase {
-  constructor(
-    private readonly presentationRepository: IPresentationRepository
-  ) {}
+  constructor(private readonly presentationRepository: IPresentationRepository) {}
 
   async execute(
-    presentationId: PresentationId, 
+    presentationId: PresentationId,
     requesterId: UserId
   ): Promise<DeletePresentationResponseDto> {
     const presentation = await this.presentationRepository.findById(presentationId);
-    
+
     if (!presentation) {
       throw new Error('プレゼンテーションが見つかりません');
     }
@@ -34,14 +32,14 @@ export class DeletePresentationUseCase {
 
     // 削除実行
     const deleted = await this.presentationRepository.delete(presentationId);
-    
+
     if (!deleted) {
       throw new Error('プレゼンテーションの削除に失敗しました');
     }
 
     return {
       success: true,
-      message: 'プレゼンテーションが正常に削除されました'
+      message: 'プレゼンテーションが正常に削除されました',
     };
   }
 }
