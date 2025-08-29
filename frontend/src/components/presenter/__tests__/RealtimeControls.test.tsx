@@ -10,13 +10,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import '@testing-library/jest-dom';
 
 import { RealtimeControls } from '../RealtimeControls';
+import { SocketState } from '@/store/slices/socketSlice';
 import socketSlice from '../../../store/slices/socketSlice';
 import presentationSlice from '../../../store/slices/presentationSlice';
 import authSlice from '../../../store/slices/authSlice';
 
 // モックされた状態
 const mockSocketState = {
-  connectionState: 'connected',
+  connectionState: 'connected' as const,
   isConnecting: false,
   isConnected: true,
   reconnectAttempts: 0,
@@ -28,7 +29,7 @@ const mockSocketState = {
   },
   realtimeData: {
     currentPresentation: null,
-    presentationStatus: 'idle',
+    presentationStatus: 'idle' as const,
     currentSlide: null,
     participants: {
       count: 0,
@@ -63,7 +64,7 @@ const mockAuthState = {
   isLoading: false,
 };
 
-const createMockStore = (customSocketState = mockSocketState) => {
+const createMockStore = (customSocketState?: Partial<SocketState>) => {
   return configureStore({
     reducer: {
       socket: socketSlice,
@@ -71,7 +72,7 @@ const createMockStore = (customSocketState = mockSocketState) => {
       auth: authSlice,
     },
     preloadedState: {
-      socket: customSocketState,
+      socket: { ...mockSocketState, ...customSocketState },
       presentation: mockPresentationState,
       auth: mockAuthState,
     },
@@ -124,9 +125,7 @@ const renderWithProviders = (
 ) => {
   return render(
     <Provider store={store}>
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
+      <BrowserRouter>{component}</BrowserRouter>
     </Provider>
   );
 };
@@ -145,7 +144,7 @@ describe('RealtimeControls', () => {
   describe('基本レンダリング', () => {
     it('通常モードで正しくレンダリングされること', () => {
       renderWithProviders(<RealtimeControls {...defaultProps} />);
-      
+
       expect(screen.getByText('リアルタイム制御')).toBeInTheDocument();
       expect(screen.getByText('プレゼンテーション制御')).toBeInTheDocument();
       expect(screen.getByText('スライド制御')).toBeInTheDocument();
@@ -153,7 +152,7 @@ describe('RealtimeControls', () => {
 
     it('コンパクトモードで正しくレンダリングされること', () => {
       renderWithProviders(<RealtimeControls {...defaultProps} compact />);
-      
+
       expect(screen.getByRole('button', { name: /開始/ })).toBeInTheDocument();
       expect(screen.queryByText('リアルタイム制御')).not.toBeInTheDocument();
     });
@@ -166,12 +165,14 @@ describe('RealtimeControls', () => {
         <RealtimeControls {...defaultProps} onPresentationStart={onStart} />
       );
 
-      const startButton = screen.getByRole('button', { name: /プレゼンテーション開始/ });
+      const startButton = screen.getByRole('button', {
+        name: /プレゼンテーション開始/,
+      });
       fireEvent.click(startButton);
 
       await waitFor(() => {
-        expect(mockEmit).toHaveBeenCalledWith('control:start', { 
-          presentationId: '1' 
+        expect(mockEmit).toHaveBeenCalledWith('control:start', {
+          presentationId: '1',
         });
         expect(onStart).toHaveBeenCalledWith(1);
       });
@@ -179,24 +180,29 @@ describe('RealtimeControls', () => {
 
     it('プレゼンテーション中は停止ボタンが表示されること', () => {
       const connectedStore = createMockStore({
-        ...mockSocketState,
         realtimeData: {
           ...mockSocketState.realtimeData,
           presentationStatus: 'started',
         },
       });
 
-      renderWithProviders(<RealtimeControls {...defaultProps} />, connectedStore);
+      renderWithProviders(
+        <RealtimeControls {...defaultProps} />,
+        connectedStore
+      );
 
-      expect(screen.getByRole('button', { name: /プレゼンテーション停止/ })).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /プレゼンテーション開始/ })).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /プレゼンテーション停止/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /プレゼンテーション開始/ })
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('スライド制御', () => {
     it('最初のスライドでは前へボタンが無効になること', () => {
       const startedStore = createMockStore({
-        ...mockSocketState,
         realtimeData: {
           ...mockSocketState.realtimeData,
           presentationStatus: 'started',
@@ -214,7 +220,6 @@ describe('RealtimeControls', () => {
 
     it('最後のスライドでは次へボタンが無効になること', () => {
       const startedStore = createMockStore({
-        ...mockSocketState,
         realtimeData: {
           ...mockSocketState.realtimeData,
           presentationStatus: 'started',
@@ -222,7 +227,11 @@ describe('RealtimeControls', () => {
       });
 
       renderWithProviders(
-        <RealtimeControls {...defaultProps} currentSlideIndex={4} totalSlides={5} />,
+        <RealtimeControls
+          {...defaultProps}
+          currentSlideIndex={4}
+          totalSlides={5}
+        />,
         startedStore
       );
 
@@ -233,7 +242,6 @@ describe('RealtimeControls', () => {
     it('次のスライドボタンが動作すること', async () => {
       const onSlideChange = jest.fn();
       const startedStore = createMockStore({
-        ...mockSocketState,
         realtimeData: {
           ...mockSocketState.realtimeData,
           presentationStatus: 'started',
@@ -241,8 +249,8 @@ describe('RealtimeControls', () => {
       });
 
       renderWithProviders(
-        <RealtimeControls 
-          {...defaultProps} 
+        <RealtimeControls
+          {...defaultProps}
           currentSlideIndex={1}
           onSlideChange={onSlideChange}
         />,
@@ -253,8 +261,8 @@ describe('RealtimeControls', () => {
       fireEvent.click(nextButton);
 
       await waitFor(() => {
-        expect(mockEmit).toHaveBeenCalledWith('control:next-slide', { 
-          presentationId: '1' 
+        expect(mockEmit).toHaveBeenCalledWith('control:next-slide', {
+          presentationId: '1',
         });
         expect(onSlideChange).toHaveBeenCalledWith(1, 2);
       });
@@ -264,14 +272,18 @@ describe('RealtimeControls', () => {
   describe('接続状態', () => {
     it('未接続時は警告が表示されること', () => {
       const disconnectedStore = createMockStore({
-        ...mockSocketState,
         isConnected: false,
         connectionState: 'disconnected',
       });
 
-      renderWithProviders(<RealtimeControls {...defaultProps} />, disconnectedStore);
+      renderWithProviders(
+        <RealtimeControls {...defaultProps} />,
+        disconnectedStore
+      );
 
-      expect(screen.getByText(/リアルタイム機能を使用するには接続が必要です/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/リアルタイム機能を使用するには接続が必要です/)
+      ).toBeInTheDocument();
     });
 
     it('接続時は接続状態が表示されること', () => {
@@ -285,13 +297,19 @@ describe('RealtimeControls', () => {
     it('disabled時はボタンが無効になること', () => {
       renderWithProviders(<RealtimeControls {...defaultProps} disabled />);
 
-      const startButton = screen.getByRole('button', { name: /プレゼンテーション開始/ });
+      const startButton = screen.getByRole('button', {
+        name: /プレゼンテーション開始/,
+      });
       expect(startButton).toBeDisabled();
     });
 
     it('スライドプログレスバーが正しく表示されること', () => {
       renderWithProviders(
-        <RealtimeControls {...defaultProps} currentSlideIndex={2} totalSlides={5} />
+        <RealtimeControls
+          {...defaultProps}
+          currentSlideIndex={2}
+          totalSlides={5}
+        />
       );
 
       expect(screen.getByText('3 / 5')).toBeInTheDocument();

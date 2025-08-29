@@ -21,13 +21,10 @@ import {
   Stop,
   NavigateBefore,
   NavigateNext,
-  SkipNext,
-  Pause,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useSocket } from '@/hooks/useSocket';
 import { useRealtimeConnection } from '@/hooks/useRealtimeConnection';
-import { RootState } from '@/store';
 import { socketSelectors } from '@/store/slices/socketSlice';
 
 /**
@@ -57,9 +54,8 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
   disabled = false,
   compact = false,
 }) => {
-  const dispatch = useDispatch();
-  const { emit, isConnected } = useSocket();
-  const { connectionState, connectionQuality } = useRealtimeConnection();
+  const { emit } = useSocket();
+  const { connectionQuality } = useRealtimeConnection();
 
   // Redux状態を取得
   const presentationStatus = useSelector(socketSelectors.getPresentationStatus);
@@ -89,10 +85,10 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
     try {
       // Socket.IOイベントを送信
       emit('control:start', { presentationId: String(presentationId) });
-      
+
       // コールバック関数実行
       onPresentationStart?.(presentationId);
-      
+
       console.log(`📢 プレゼンテーション開始: ${presentationId}`);
     } catch (error) {
       console.error('プレゼンテーション開始エラー:', error);
@@ -111,10 +107,10 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
     try {
       // Socket.IOイベントを送信
       emit('control:stop', { presentationId: String(presentationId) });
-      
+
       // コールバック関数実行
       onPresentationStop?.(presentationId);
-      
+
       console.log(`⏸️ プレゼンテーション停止: ${presentationId}`);
     } catch (error) {
       console.error('プレゼンテーション停止エラー:', error);
@@ -134,17 +130,25 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
     try {
       // Socket.IOイベントを送信
       emit('control:prev-slide', { presentationId: String(presentationId) });
-      
+
       // コールバック関数実行
       onSlideChange?.(presentationId, newIndex);
-      
+
       console.log(`◀️ 前のスライドに移動: ${newIndex}`);
     } catch (error) {
       console.error('スライド切り替えエラー:', error);
     } finally {
       setIsChangingSlide(false);
     }
-  }, [canControl, isChangingSlide, isFirstSlide, currentSlideIndex, presentationId, emit, onSlideChange]);
+  }, [
+    canControl,
+    isChangingSlide,
+    isFirstSlide,
+    currentSlideIndex,
+    presentationId,
+    emit,
+    onSlideChange,
+  ]);
 
   /**
    * 次のスライドに移動
@@ -157,39 +161,26 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
     try {
       // Socket.IOイベントを送信
       emit('control:next-slide', { presentationId: String(presentationId) });
-      
+
       // コールバック関数実行
       onSlideChange?.(presentationId, newIndex);
-      
+
       console.log(`▶️ 次のスライドに移動: ${newIndex}`);
     } catch (error) {
       console.error('スライド切り替えエラー:', error);
     } finally {
       setIsChangingSlide(false);
     }
-  }, [canControl, isChangingSlide, isLastSlide, currentSlideIndex, totalSlides, presentationId, emit, onSlideChange]);
-
-  /**
-   * 指定したスライドに移動
-   */
-  const handleGotoSlide = useCallback(async (slideIndex: number) => {
-    if (!canControl || isChangingSlide || slideIndex < 0 || slideIndex >= totalSlides) return;
-
-    setIsChangingSlide(true);
-    try {
-      // Socket.IOイベントを送信
-      emit('control:goto-slide', { presentationId: String(presentationId), slideIndex });
-      
-      // コールバック関数実行
-      onSlideChange?.(presentationId, slideIndex);
-      
-      console.log(`🎯 スライドに移動: ${slideIndex}`);
-    } catch (error) {
-      console.error('スライド移動エラー:', error);
-    } finally {
-      setIsChangingSlide(false);
-    }
-  }, [canControl, isChangingSlide, totalSlides, presentationId, emit, onSlideChange]);
+  }, [
+    canControl,
+    isChangingSlide,
+    isLastSlide,
+    currentSlideIndex,
+    totalSlides,
+    presentationId,
+    emit,
+    onSlideChange,
+  ]);
 
   // ========== レンダリング ==========
 
@@ -326,7 +317,7 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
           <Typography variant="subtitle2" gutterBottom>
             スライド制御
           </Typography>
-          
+
           {/* スライド位置表示 */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Typography variant="body2" sx={{ minWidth: 120 }}>
@@ -334,11 +325,18 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
             </Typography>
             <LinearProgress
               variant="determinate"
-              value={totalSlides > 0 ? ((currentSlideIndex + 1) / totalSlides) * 100 : 0}
+              value={
+                totalSlides > 0
+                  ? ((currentSlideIndex + 1) / totalSlides) * 100
+                  : 0
+              }
               sx={{ flexGrow: 1, mx: 2 }}
             />
             <Typography variant="body2" color="text.secondary">
-              {totalSlides > 0 ? Math.round(((currentSlideIndex + 1) / totalSlides) * 100) : 0}%
+              {totalSlides > 0
+                ? Math.round(((currentSlideIndex + 1) / totalSlides) * 100)
+                : 0}
+              %
             </Typography>
           </Box>
 
@@ -347,14 +345,18 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
             <Button
               startIcon={<NavigateBefore />}
               onClick={handlePrevSlide}
-              disabled={!canControl || isChangingSlide || isFirstSlide || !isPresenting}
+              disabled={
+                !canControl || isChangingSlide || isFirstSlide || !isPresenting
+              }
             >
               前へ
             </Button>
             <Button
               startIcon={<NavigateNext />}
               onClick={handleNextSlide}
-              disabled={!canControl || isChangingSlide || isLastSlide || !isPresenting}
+              disabled={
+                !canControl || isChangingSlide || isLastSlide || !isPresenting
+              }
             >
               次へ
             </Button>
@@ -362,9 +364,11 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
         </Box>
 
         {/* 接続状態表示 */}
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Box
+          sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}
+        >
           <Typography variant="body2" color="text.secondary">
-            接続状態: 
+            接続状態:
             <Box
               component="span"
               sx={{
@@ -374,8 +378,12 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
                 borderRadius: 1,
                 fontSize: '0.75rem',
                 fontWeight: 'medium',
-                backgroundColor: isSocketConnected ? 'success.light' : 'error.light',
-                color: isSocketConnected ? 'success.contrastText' : 'error.contrastText',
+                backgroundColor: isSocketConnected
+                  ? 'success.light'
+                  : 'error.light',
+                color: isSocketConnected
+                  ? 'success.contrastText'
+                  : 'error.contrastText',
               }}
             >
               {isSocketConnected ? '接続済み' : '未接続'}
@@ -389,15 +397,20 @@ export const RealtimeControls: React.FC<RealtimeControlsProps> = ({
                   py: 0.5,
                   borderRadius: 1,
                   fontSize: '0.75rem',
-                  backgroundColor: 
-                    connectionQuality === 'excellent' ? 'success.light' :
-                    connectionQuality === 'good' ? 'info.light' : 'warning.light',
+                  backgroundColor:
+                    connectionQuality === 'excellent'
+                      ? 'success.light'
+                      : connectionQuality === 'good'
+                        ? 'info.light'
+                        : 'warning.light',
                 }}
               >
-                品質: {
-                  connectionQuality === 'excellent' ? '優秀' :
-                  connectionQuality === 'good' ? '良好' : '低品質'
-                }
+                品質:{' '}
+                {connectionQuality === 'excellent'
+                  ? '優秀'
+                  : connectionQuality === 'good'
+                    ? '良好'
+                    : '低品質'}
               </Box>
             )}
           </Typography>

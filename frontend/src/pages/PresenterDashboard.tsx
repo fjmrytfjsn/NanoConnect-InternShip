@@ -16,7 +16,7 @@ import {
   Alert,
   Divider,
 } from '@mui/material';
-import { Add, Refresh, Dashboard, Slideshow } from '@mui/icons-material';
+import { Add, Refresh } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '@/store';
@@ -27,7 +27,7 @@ import {
   removePresentation,
 } from '@/store/slices/presentationSlice';
 import { PresentationList } from '@/components/presenter/PresentationList/PresentationList';
-import { 
+import {
   RealtimeControls,
   ParticipantCounter,
   ConnectionStatus,
@@ -90,7 +90,7 @@ export const PresenterDashboard: React.FC = () => {
   );
 
   // Socket.IOフックの利用
-  const { connect, disconnect, emit, isConnected } = useSocket();
+  const { connect, isConnected } = useSocket();
   const { connectionState, reconnectAttempts } = useRealtimeConnection();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -99,9 +99,10 @@ export const PresenterDashboard: React.FC = () => {
   >(null);
   const [presentationToDeleteTitle, setPresentationToDeleteTitle] =
     useState<string>('');
-  
+
   // リアルタイム機能の状態
-  const [selectedPresentation, setSelectedPresentation] = useState<Presentation | null>(null);
+  const [selectedPresentation, setSelectedPresentation] =
+    useState<Presentation | null>(null);
   const [showRealtimePanel, setShowRealtimePanel] = useState(false);
 
   const loadPresentations = useCallback(async () => {
@@ -167,10 +168,6 @@ export const PresenterDashboard: React.FC = () => {
     setPresentationToDeleteTitle('');
   };
 
-  const handlePreview = (id: number) => {
-    navigate(`/presenter/presentations/${id}/preview`);
-  };
-
   const handleRefresh = () => {
     loadPresentations();
   };
@@ -192,10 +189,13 @@ export const PresenterDashboard: React.FC = () => {
     // 実際の実装では、プレゼンテーション状態を停止に更新
   }, []);
 
-  const handleSlideChange = useCallback((presentationId: number, slideIndex: number) => {
-    console.log(`スライド変更: ${presentationId} - ${slideIndex}`);
-    // 実際の実装では、現在のスライドインデックスを更新
-  }, []);
+  const handleSlideChange = useCallback(
+    (presentationId: number, slideIndex: number) => {
+      console.log(`スライド変更: ${presentationId} - ${slideIndex}`);
+      // 実際の実装では、現在のスライドインデックスを更新
+    },
+    []
+  );
 
   const handleRealtimePanelClose = () => {
     setShowRealtimePanel(false);
@@ -246,8 +246,8 @@ export const PresenterDashboard: React.FC = () => {
         {/* 接続状態警告 */}
         {!isConnected && (
           <Alert severity="warning" sx={{ mb: 3 }}>
-            リアルタイム機能を利用するにはSocket.IO接続が必要です。
-            接続状態: {connectionState}
+            リアルタイム機能を利用するにはSocket.IO接続が必要です。 接続状態:{' '}
+            {connectionState}
             {reconnectAttempts > 0 && ` (再試行: ${reconnectAttempts}回)`}
           </Alert>
         )}
@@ -260,7 +260,7 @@ export const PresenterDashboard: React.FC = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onPreview={(id) => {
-                const presentation = presentations.find(p => p.id === id);
+                const presentation = presentations.find((p) => p.id === id);
                 if (presentation) {
                   handlePresentationSelect(presentation);
                 }
@@ -273,16 +273,25 @@ export const PresenterDashboard: React.FC = () => {
             <Grid item xs={12} lg={4}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">
-                      リアルタイム制御パネル
-                    </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h6">リアルタイム制御パネル</Typography>
                     <Button size="small" onClick={handleRealtimePanelClose}>
                       閉じる
                     </Button>
                   </Box>
-                  
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
                     {selectedPresentation.title}
                   </Typography>
 
@@ -300,7 +309,9 @@ export const PresenterDashboard: React.FC = () => {
                     <RealtimeControls
                       presentationId={selectedPresentation.id}
                       totalSlides={selectedPresentation.slideCount || 0}
-                      currentSlideIndex={selectedPresentation.currentSlideIndex || 0}
+                      currentSlideIndex={
+                        selectedPresentation.currentSlideIndex || 0
+                      }
                       onPresentationStart={handleStartPresentation}
                       onPresentationStop={handleStopPresentation}
                       onSlideChange={handleSlideChange}
@@ -310,17 +321,12 @@ export const PresenterDashboard: React.FC = () => {
 
                   {/* 参加者数（コンパクト） */}
                   <Box sx={{ mb: 3 }}>
-                    <ParticipantCounter
-                      presentationId={selectedPresentation.id}
-                      compact
-                      showRecentActivity={false}
-                    />
+                    <ParticipantCounter compact showRecentActivity={false} />
                   </Box>
 
                   {/* リアルタイム結果（コンパクト） */}
                   <Box>
                     <RealtimeResults
-                      presentationId={selectedPresentation.id}
                       compact
                       showRealtime
                       showAnalytics
@@ -340,8 +346,7 @@ export const PresenterDashboard: React.FC = () => {
               <ConnectionStatus showDetails showStats />
             </Grid>
             <Grid item xs={12} md={6}>
-              <ParticipantCounter 
-                presentationId={selectedPresentation.id}
+              <ParticipantCounter
                 showRecentActivity
                 showTrend
                 maxRecentItems={5}
@@ -358,11 +363,7 @@ export const PresenterDashboard: React.FC = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <RealtimeResults
-                presentationId={selectedPresentation.id}
-                showRealtime
-                showAnalytics
-              />
+              <RealtimeResults showRealtime showAnalytics />
             </Grid>
           </Grid>
         )}

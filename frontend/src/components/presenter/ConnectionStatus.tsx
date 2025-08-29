@@ -19,26 +19,20 @@ import {
   Grid,
 } from '@mui/material';
 import {
-  Wifi,
   WifiOff,
   SignalCellular0Bar,
   SignalCellular1Bar,
-  SignalCellular2Bar,
   SignalCellular3Bar,
   SignalCellular4Bar,
   Refresh,
   ExpandMore,
   ExpandLess,
-  Router,
   Speed,
-  AccessTime,
   Replay,
 } from '@mui/icons-material';
 import { useRealtimeConnection } from '@/hooks/useRealtimeConnection';
 import { useSelector } from 'react-redux';
 import { socketSelectors } from '@/store/slices/socketSlice';
-import { formatDistanceToNow, format } from 'date-fns';
-import { ja } from 'date-fns/locale';
 
 /**
  * ConnectionStatusプロパティ
@@ -72,7 +66,6 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     stats,
     forceReconnect,
     pingServer,
-    checkConnectionQuality,
   } = useRealtimeConnection({
     autoConnect: true,
     enableQualityMonitoring: true,
@@ -100,7 +93,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
 
   const handlePing = useCallback(async () => {
     if (isPinging) return;
-    
+
     setIsPinging(true);
     try {
       const latency = await pingServer();
@@ -122,7 +115,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     if (networkState === 'offline') {
       return <WifiOff color="error" />;
     }
-    
+
     if (!isConnected) {
       return <WifiOff color="disabled" />;
     }
@@ -143,7 +136,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     if (networkState === 'offline' || !isConnected) {
       return 'error';
     }
-    
+
     switch (connectionQuality) {
       case 'excellent':
         return 'success';
@@ -160,15 +153,15 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     if (networkState === 'offline') {
       return 'オフライン';
     }
-    
+
     if (isConnecting) {
       return '接続中...';
     }
-    
+
     if (!isConnected) {
       return '未接続';
     }
-    
+
     switch (connectionQuality) {
       case 'excellent':
         return '優秀';
@@ -187,25 +180,19 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     return `${Math.round(ms / 60000)}分`;
   };
 
-  const formatTimestamp = (timestamp: string | null) => {
-    if (!timestamp) return '未記録';
-    try {
-      return format(new Date(timestamp), 'HH:mm:ss', { locale: ja });
-    } catch (error) {
-      return '無効な時刻';
-    }
-  };
-
   // ========== コンパクトモード ==========
   if (compact) {
     return (
-      <Box className={className} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        className={className}
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <Tooltip title={`接続状態: ${getConnectionText()}`}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {getConnectionIcon()}
           </Box>
         </Tooltip>
-        
+
         <Chip
           label={getConnectionText()}
           color={getConnectionColor()}
@@ -240,13 +227,22 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     <Card className={className}>
       <CardContent>
         {/* ヘッダー */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            接続状態
-          </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6">接続状態</Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="接続テスト">
-              <IconButton size="small" onClick={handlePing} disabled={!isConnected || isPinging}>
+              <IconButton
+                size="small"
+                onClick={handlePing}
+                disabled={!isConnected || isPinging}
+              >
                 <Speed />
               </IconButton>
             </Tooltip>
@@ -260,19 +256,14 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
 
         {/* メイン接続状態 */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ mr: 2, fontSize: '2rem' }}>
-            {getConnectionIcon()}
-          </Box>
+          <Box sx={{ mr: 2, fontSize: '2rem' }}>{getConnectionIcon()}</Box>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h6">
-              {getConnectionText()}
-            </Typography>
+            <Typography variant="h6">{getConnectionText()}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {connectionState} {networkState === 'offline' && '(ネットワーク圏外)'}
+              {connectionState}{' '}
+              {networkState === 'offline' && '(ネットワーク圏外)'}
             </Typography>
-            {isConnecting && (
-              <LinearProgress sx={{ mt: 1 }} />
-            )}
+            {isConnecting && <LinearProgress sx={{ mt: 1 }} />}
           </Box>
           <Chip
             label={isConnected ? 'オンライン' : 'オフライン'}
@@ -300,7 +291,10 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           <Alert severity="info" sx={{ mb: 2 }}>
             再接続を {reconnectAttempts} 回試行中
             {settings.maxReconnectAttempts && (
-              <span> ({reconnectAttempts}/{settings.maxReconnectAttempts})</span>
+              <span>
+                {' '}
+                ({reconnectAttempts}/{settings.maxReconnectAttempts})
+              </span>
             )}
           </Alert>
         )}
@@ -343,15 +337,20 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
         {/* 統計情報 */}
         {showStats && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2">
-                接続統計
-              </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
+            >
+              <Typography variant="subtitle2">接続統計</Typography>
               <IconButton size="small" onClick={toggleExpandedStats}>
                 {showExpandedStats ? <ExpandLess /> : <ExpandMore />}
               </IconButton>
             </Box>
-            
+
             <Grid container spacing={1}>
               <Grid item xs={4}>
                 <Box sx={{ textAlign: 'center' }}>

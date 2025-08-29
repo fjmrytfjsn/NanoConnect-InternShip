@@ -41,7 +41,6 @@ import { ja } from 'date-fns/locale';
  * RealtimeResultsプロパティ
  */
 export interface RealtimeResultsProps {
-  presentationId?: number;
   slideId?: number;
   showRealtime?: boolean;
   showAnalytics?: boolean;
@@ -61,7 +60,6 @@ type DisplayMode = 'responses' | 'analytics' | 'both';
  * リアルタイム結果表示コンポーネント
  */
 export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
-  presentationId,
   slideId,
   showRealtime = true,
   showAnalytics = true,
@@ -88,13 +86,13 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
   const currentSlideResponses = useMemo(() => {
     if (!slideId && !currentSlide?.slideId) return responses;
     const targetSlideId = slideId || currentSlide?.slideId;
-    return responses.filter(response => response.slideId === targetSlideId);
+    return responses.filter((response) => response.slideId === targetSlideId);
   }, [responses, slideId, currentSlide?.slideId]);
 
   // 回答数統計
   const responseStats = useMemo(() => {
     const total = currentSlideResponses.length;
-    const recent = currentSlideResponses.filter(response => {
+    const recent = currentSlideResponses.filter((response) => {
       const responseTime = new Date(response.timestamp);
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       return responseTime > fiveMinutesAgo;
@@ -108,14 +106,17 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
     if (!analytics) return null;
 
     const data = analytics.analytics;
-    
+
     // 多肢選択問題の場合
     if ('optionCounts' in data && 'optionPercentages' in data) {
-      const options = Object.entries(data.optionCounts).map(([option, count]) => ({
-        option,
-        count: count as number,
-        percentage: (data.optionPercentages as Record<string, number>)[option] || 0,
-      })).sort((a, b) => b.count - a.count);
+      const options = Object.entries(data.optionCounts)
+        .map(([option, count]) => ({
+          option,
+          count: count as number,
+          percentage:
+            (data.optionPercentages as Record<string, number>)[option] || 0,
+        }))
+        .sort((a, b) => b.count - a.count);
 
       return {
         type: 'multiple_choice' as const,
@@ -124,14 +125,20 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
         lastUpdated: analytics.timestamp,
       };
     }
-    
+
     // ワードクラウドの場合
     if ('wordFrequencies' in data && 'topWords' in data) {
       return {
         type: 'word_cloud' as const,
         totalResponses: analytics.totalResponses,
         wordFrequencies: data.wordFrequencies as Record<string, number>,
-        topWords: (data.topWords as Array<{word: string; count: number; percentage: number}>).slice(0, 10),
+        topWords: (
+          data.topWords as Array<{
+            word: string;
+            count: number;
+            percentage: number;
+          }>
+        ).slice(0, 10),
         lastUpdated: analytics.timestamp,
       };
     }
@@ -191,10 +198,10 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
         {processedAnalytics.options.map((option, index) => (
           <Fade in key={option.option} timeout={300 * (index + 1)}>
             <Box sx={{ mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2">
-                  {option.option}
-                </Typography>
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}
+              >
+                <Typography variant="body2">{option.option}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {option.count}件 ({Math.round(option.percentage)}%)
                 </Typography>
@@ -208,9 +215,14 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
                   bgcolor: 'grey.200',
                   '& .MuiLinearProgress-bar': {
                     borderRadius: 4,
-                    bgcolor: index === 0 ? 'primary.main' : 
-                           index === 1 ? 'secondary.main' :
-                           index === 2 ? 'success.main' : 'info.main',
+                    bgcolor:
+                      index === 0
+                        ? 'primary.main'
+                        : index === 1
+                          ? 'secondary.main'
+                          : index === 2
+                            ? 'success.main'
+                            : 'info.main',
                   },
                 }}
               />
@@ -261,11 +273,7 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
       .reverse();
 
     if (recentResponses.length === 0) {
-      return (
-        <Alert severity="info">
-          まだ回答がありません
-        </Alert>
-      );
+      return <Alert severity="info">まだ回答がありません</Alert>;
     }
 
     return (
@@ -280,10 +288,9 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
                 <ListItemText
                   primary={
                     <Typography variant="body2">
-                      {typeof response.responseData === 'object' 
+                      {typeof response.responseData === 'object'
                         ? JSON.stringify(response.responseData)
-                        : String(response.responseData)
-                      }
+                        : String(response.responseData)}
                     </Typography>
                   }
                   secondary={
@@ -303,7 +310,10 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
   // ========== コンパクトモード ==========
   if (compact) {
     return (
-      <Box className={className} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        className={className}
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <Tooltip title="回答数">
           <Chip
             icon={<Analytics />}
@@ -320,7 +330,7 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
             }}
           />
         </Tooltip>
-        
+
         {responseStats.recent > 0 && (
           <Tooltip title={`直近5分間: ${responseStats.recent}件`}>
             <Chip
@@ -349,10 +359,15 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
     <Card className={className}>
       <CardContent>
         {/* ヘッダー */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            リアルタイム結果
-          </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6">リアルタイム結果</Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {onToggleVisibility && (
               <Tooltip title={isVisible ? '結果を非表示' : '結果を表示'}>
@@ -441,32 +456,33 @@ export const RealtimeResults: React.FC<RealtimeResultsProps> = ({
         {isVisible && (
           <Box>
             {/* 分析結果 */}
-            {(displayMode === 'analytics' || displayMode === 'both') && showAnalytics && (
-              <Box sx={{ mb: 3 }}>
-                {processedAnalytics ? (
-                  <Box>
-                    {processedAnalytics.type === 'multiple_choice' && renderMultipleChoiceResults()}
-                    {processedAnalytics.type === 'word_cloud' && renderWordCloudResults()}
-                  </Box>
-                ) : (
-                  <Alert severity="info">
-                    分析データがまだ利用できません
-                  </Alert>
-                )}
-              </Box>
-            )}
+            {(displayMode === 'analytics' || displayMode === 'both') &&
+              showAnalytics && (
+                <Box sx={{ mb: 3 }}>
+                  {processedAnalytics ? (
+                    <Box>
+                      {processedAnalytics.type === 'multiple_choice' &&
+                        renderMultipleChoiceResults()}
+                      {processedAnalytics.type === 'word_cloud' &&
+                        renderWordCloudResults()}
+                    </Box>
+                  ) : (
+                    <Alert severity="info">
+                      分析データがまだ利用できません
+                    </Alert>
+                  )}
+                </Box>
+              )}
 
             {/* 区切り線 */}
-            {displayMode === 'both' && showAnalytics && showRealtime && processedAnalytics && (
-              <Divider sx={{ my: 3 }} />
-            )}
+            {displayMode === 'both' &&
+              showAnalytics &&
+              showRealtime &&
+              processedAnalytics && <Divider sx={{ my: 3 }} />}
 
             {/* 回答一覧 */}
-            {(displayMode === 'responses' || displayMode === 'both') && showRealtime && (
-              <Box>
-                {renderRecentResponses()}
-              </Box>
-            )}
+            {(displayMode === 'responses' || displayMode === 'both') &&
+              showRealtime && <Box>{renderRecentResponses()}</Box>}
           </Box>
         )}
 

@@ -38,7 +38,6 @@ import { ja } from 'date-fns/locale';
  * ParticipantCounterプロパティ
  */
 export interface ParticipantCounterProps {
-  presentationId?: number;
   showRecentActivity?: boolean;
   showTrend?: boolean;
   compact?: boolean;
@@ -61,7 +60,6 @@ interface ParticipantActivity {
  * 参加者数表示コンポーネント
  */
 export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
-  presentationId,
   showRecentActivity = true,
   showTrend = true,
   compact = false,
@@ -72,12 +70,15 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
   // Redux状態を取得
   const participants = useSelector(socketSelectors.getParticipants);
   const isConnected = useSelector(socketSelectors.getIsConnected);
-  const currentPresentation = useSelector(socketSelectors.getCurrentPresentation);
 
   // ローカル状態
   const [previousCount, setPreviousCount] = useState(0);
-  const [trendDirection, setTrendDirection] = useState<'up' | 'down' | 'stable'>('stable');
-  const [recentActivity, setRecentActivity] = useState<ParticipantActivity[]>([]);
+  const [trendDirection, setTrendDirection] = useState<
+    'up' | 'down' | 'stable'
+  >('stable');
+  const [recentActivity, setRecentActivity] = useState<ParticipantActivity[]>(
+    []
+  );
   const [newJoinAnimation, setNewJoinAnimation] = useState(false);
 
   const currentCount = participants.count;
@@ -97,9 +98,9 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
       setTrendDirection('up');
       setNewJoinAnimation(true);
       setTimeout(() => setNewJoinAnimation(false), 1000);
-      
+
       // 参加イベントを記録
-      setRecentActivity(prev => [
+      setRecentActivity((prev) => [
         {
           type: 'joined',
           sessionId: `session-${Date.now()}`,
@@ -110,9 +111,9 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
       ]);
     } else if (currentCount < previousCount) {
       setTrendDirection('down');
-      
+
       // 退出イベントを記録
-      setRecentActivity(prev => [
+      setRecentActivity((prev) => [
         {
           type: 'left',
           sessionId: `session-${Date.now()}`,
@@ -133,17 +134,21 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
    */
   useEffect(() => {
     if (participants.recent.length > 0) {
-      const activities: ParticipantActivity[] = participants.recent.map(event => ({
-        type: 'joined' as const,
-        sessionId: event.sessionId,
-        timestamp: event.timestamp,
-        participantCount: event.participantCount,
-      }));
-      
-      setRecentActivity(prev => {
+      const activities: ParticipantActivity[] = participants.recent.map(
+        (event) => ({
+          type: 'joined' as const,
+          sessionId: event.sessionId,
+          timestamp: event.timestamp,
+          participantCount: event.participantCount,
+        })
+      );
+
+      setRecentActivity((prev) => {
         // 重複を避けて新しいアクティビティのみを追加
-        const existingSessions = prev.map(a => a.sessionId);
-        const newActivities = activities.filter(a => !existingSessions.includes(a.sessionId));
+        const existingSessions = prev.map((a) => a.sessionId);
+        const newActivities = activities.filter(
+          (a) => !existingSessions.includes(a.sessionId)
+        );
         return [...newActivities, ...prev].slice(0, maxRecentItems);
       });
     }
@@ -194,7 +199,10 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
   // ========== コンパクトモード ==========
   if (compact) {
     return (
-      <Box className={className} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        className={className}
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <Tooltip title="参加者数">
           <Badge
             badgeContent={currentCount}
@@ -213,9 +221,9 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
             <People color={isConnected ? 'primary' : 'disabled'} />
           </Badge>
         </Tooltip>
-        
+
         {showTrend && getTrendIcon()}
-        
+
         {onRefresh && (
           <Tooltip title="更新">
             <IconButton size="small" onClick={handleRefresh}>
@@ -232,10 +240,15 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
     <Card className={className}>
       <CardContent>
         {/* ヘッダー */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            参加者
-          </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6">参加者</Typography>
           {onRefresh && (
             <Tooltip title="更新">
               <IconButton size="small" onClick={handleRefresh}>
@@ -246,7 +259,14 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
         </Box>
 
         {/* 参加者数メイン表示 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 3,
+          }}
+        >
           <Avatar
             sx={{
               bgcolor: isConnected ? 'primary.main' : 'grey.400',
@@ -263,9 +283,13 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
           >
             <People sx={{ fontSize: 32 }} />
           </Avatar>
-          
+
           <Box>
-            <Typography variant="h3" component="div" sx={{ fontWeight: 'bold' }}>
+            <Typography
+              variant="h3"
+              component="div"
+              sx={{ fontWeight: 'bold' }}
+            >
               {currentCount}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -273,7 +297,13 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
                 人が参加中
               </Typography>
               {showTrend && (
-                <Box sx={{ display: 'flex', alignItems: 'center', color: getTrendColor() }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: getTrendColor(),
+                  }}
+                >
                   {getTrendIcon()}
                 </Box>
               )}
@@ -299,39 +329,51 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
               最近のアクティビティ
             </Typography>
             <List dense>
-              {recentActivity.slice(0, maxRecentItems).map((activity, index) => (
-                <Fade in key={`${activity.sessionId}-${activity.timestamp}`} timeout={300 * (index + 1)}>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar
-                        sx={{
-                          bgcolor: activity.type === 'joined' ? 'success.light' : 'error.light',
-                          width: 32,
-                          height: 32,
-                        }}
-                      >
-                        {activity.type === 'joined' ? (
-                          <PersonAdd fontSize="small" />
-                        ) : (
-                          <PersonRemove fontSize="small" />
-                        )}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2">
-                          {activity.type === 'joined' ? '参加者が参加' : '参加者が退出'}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="caption" color="text.secondary">
-                          {formatActivityTime(activity.timestamp)} • {activity.participantCount}人
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                </Fade>
-              ))}
+              {recentActivity
+                .slice(0, maxRecentItems)
+                .map((activity, index) => (
+                  <Fade
+                    in
+                    key={`${activity.sessionId}-${activity.timestamp}`}
+                    timeout={300 * (index + 1)}
+                  >
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar
+                          sx={{
+                            bgcolor:
+                              activity.type === 'joined'
+                                ? 'success.light'
+                                : 'error.light',
+                            width: 32,
+                            height: 32,
+                          }}
+                        >
+                          {activity.type === 'joined' ? (
+                            <PersonAdd fontSize="small" />
+                          ) : (
+                            <PersonRemove fontSize="small" />
+                          )}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography variant="body2">
+                            {activity.type === 'joined'
+                              ? '参加者が参加'
+                              : '参加者が退出'}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="caption" color="text.secondary">
+                            {formatActivityTime(activity.timestamp)} •{' '}
+                            {activity.participantCount}人
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                  </Fade>
+                ))}
             </List>
           </Box>
         )}
@@ -340,10 +382,17 @@ export const ParticipantCounter: React.FC<ParticipantCounterProps> = ({
         {showTrend && previousCount > 0 && (
           <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              変化: {currentCount - previousCount >= 0 ? '+' : ''}{currentCount - previousCount}
-              {trendDirection === 'up' && <span style={{ color: '#4caf50' }}> ↗ 増加傾向</span>}
-              {trendDirection === 'down' && <span style={{ color: '#f44336' }}> ↘ 減少傾向</span>}
-              {trendDirection === 'stable' && <span style={{ color: '#757575' }}> → 安定</span>}
+              変化: {currentCount - previousCount >= 0 ? '+' : ''}
+              {currentCount - previousCount}
+              {trendDirection === 'up' && (
+                <span style={{ color: '#4caf50' }}> ↗ 増加傾向</span>
+              )}
+              {trendDirection === 'down' && (
+                <span style={{ color: '#f44336' }}> ↘ 減少傾向</span>
+              )}
+              {trendDirection === 'stable' && (
+                <span style={{ color: '#757575' }}> → 安定</span>
+              )}
             </Typography>
           </Box>
         )}
