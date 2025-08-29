@@ -70,7 +70,7 @@ const createWrapper = (store = createTestStore()) => {
 };
 
 // モックされたsocketServiceのインスタンスを取得
-const mockSocketService = require('@/services/socket/SocketService').socketService;
+import { socketService as mockSocketService } from '@/services/socket/SocketService';
 
 describe('useSocket', () => {
   beforeEach(() => {
