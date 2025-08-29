@@ -11,6 +11,17 @@ import { Server as SocketIOServer } from 'socket.io';
 import { config } from '@/config/app';
 import { SQLiteConnection } from '@/infrastructure/database/SQLiteConnection';
 
+// プレゼンテーション関連のインポート
+import { SQLitePresentationRepository } from '@/infrastructure/database/repositories/SQLitePresentationRepository';
+import { SQLiteUserRepository } from '@/infrastructure/database/repositories/SQLiteUserRepository';
+import { CreatePresentationUseCase } from '@/application/useCases/presentation/CreatePresentationUseCase';
+import { GetPresentationUseCase } from '@/application/useCases/presentation/GetPresentationUseCase';
+import { ListPresentationsUseCase } from '@/application/useCases/presentation/ListPresentationsUseCase';
+import { UpdatePresentationUseCase } from '@/application/useCases/presentation/UpdatePresentationUseCase';
+import { DeletePresentationUseCase } from '@/application/useCases/presentation/DeletePresentationUseCase';
+import { PresentationController } from '@/presentation/controllers/PresentationController';
+import { createPresentationRoutes } from '@/presentation/routes/presentationRoutes';
+
 class NanoConnectServer {
   private app: express.Application;
   private httpServer: ReturnType<typeof createServer>;
@@ -84,6 +95,9 @@ class NanoConnectServer {
    * ルートの設定
    */
   private setupRoutes(): void {
+    // プレゼンテーションAPIルートの設定
+    this.setupPresentationRoutes();
+
     // ヘルスチェックエンドポイント
     this.app.get('/health', (_req, res) => {
       const dbHealth = this.database.healthCheck();
@@ -135,6 +149,37 @@ class NanoConnectServer {
         });
       }
     );
+  }
+
+  /**
+   * プレゼンテーションAPIルートの設定
+   */
+  private setupPresentationRoutes(): void {
+    // データベース接続
+    const dbConnection = SQLiteConnection.getInstance();
+    
+    // リポジトリの初期化
+    const presentationRepository = new SQLitePresentationRepository(dbConnection);
+    const userRepository = new SQLiteUserRepository();
+
+    // ユースケースの初期化
+    const createPresentationUseCase = new CreatePresentationUseCase(presentationRepository, userRepository);
+    const getPresentationUseCase = new GetPresentationUseCase(presentationRepository);
+    const listPresentationsUseCase = new ListPresentationsUseCase(presentationRepository);
+    const updatePresentationUseCase = new UpdatePresentationUseCase(presentationRepository);
+    const deletePresentationUseCase = new DeletePresentationUseCase(presentationRepository);
+
+    // コントローラーの初期化
+    const presentationController = new PresentationController(
+      createPresentationUseCase,
+      getPresentationUseCase,
+      updatePresentationUseCase,
+      deletePresentationUseCase,
+      listPresentationsUseCase
+    );
+
+    // ルートの設定
+    this.app.use('/api/presentations', createPresentationRoutes(presentationController));
   }
 
   /**
