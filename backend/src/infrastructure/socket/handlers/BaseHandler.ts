@@ -17,8 +17,8 @@ export interface ServerToClientEvents {
   'analytics:updated': (data: any) => void;
   'participant:joined': (data: any) => void;
   'participant:left': (data: any) => void;
-  'error': (data: any) => void;
-  'notification': (data: any) => void;
+  error: (data: any) => void;
+  notification: (data: any) => void;
 }
 
 export interface ClientToServerEvents {
@@ -76,7 +76,11 @@ export abstract class BaseHandler {
   /**
    * スライドルームに参加
    */
-  protected joinSlideRoom(socket: TypedSocket, presentationId: PresentationId, slideIndex: number): void {
+  protected joinSlideRoom(
+    socket: TypedSocket,
+    presentationId: PresentationId,
+    slideIndex: number
+  ): void {
     const roomName = this.getSlideRoomName(presentationId, slideIndex);
     socket.join(roomName);
     console.log(`🏠 ソケット ${socket.id} がスライドルーム ${roomName} に参加しました`);
@@ -85,7 +89,11 @@ export abstract class BaseHandler {
   /**
    * スライドルームから退出
    */
-  protected leaveSlideRoom(socket: TypedSocket, presentationId: PresentationId, slideIndex: number): void {
+  protected leaveSlideRoom(
+    socket: TypedSocket,
+    presentationId: PresentationId,
+    slideIndex: number
+  ): void {
     const roomName = this.getSlideRoomName(presentationId, slideIndex);
     socket.leave(roomName);
     console.log(`🚪 ソケット ${socket.id} がスライドルーム ${roomName} から退出しました`);
@@ -135,7 +143,7 @@ export abstract class BaseHandler {
    */
   protected handleError(socket: TypedSocket, error: Error, context: string): void {
     console.error(`❌ Socket.IOエラー [${context}]:`, error);
-    
+
     socket.emit('error', {
       code: 'SOCKET_ERROR',
       message: `${context}でエラーが発生しました`,
@@ -175,7 +183,9 @@ export abstract class BaseHandler {
    * ソケットの切断処理
    */
   protected handleDisconnect(socket: TypedSocket, reason: string): void {
-    console.log(`🔌 ソケット ${socket.id} が切断されました (名前空間: ${this.namespace.name}): ${reason}`);
+    console.log(
+      `🔌 ソケット ${socket.id} が切断されました (名前空間: ${this.namespace.name}): ${reason}`
+    );
     // 必要に応じて継承クラスでオーバーライド
   }
 }

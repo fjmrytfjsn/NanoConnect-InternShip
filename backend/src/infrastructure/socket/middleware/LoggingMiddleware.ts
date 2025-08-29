@@ -47,7 +47,7 @@ export class WebSocketLoggingMiddleware {
   static createConnectionLogger() {
     return (socket: Socket, next: (err?: ExtendedError) => void) => {
       const authData = WebSocketAuthMiddleware.getAuthData(socket);
-      
+
       this.logEvent({
         timestamp: new Date().toISOString(),
         level: LogLevel.INFO,
@@ -79,7 +79,7 @@ export class WebSocketLoggingMiddleware {
     // 送信イベントのログ
     socket.emit = function (event: string, ...args: any[]) {
       const authData = WebSocketAuthMiddleware.getAuthData(socket);
-      
+
       WebSocketLoggingMiddleware.logEvent({
         timestamp: new Date().toISOString(),
         level: LogLevel.DEBUG,
@@ -118,7 +118,7 @@ export class WebSocketLoggingMiddleware {
         const originalCallback = lastArg;
         args[args.length - 1] = (...callbackArgs: any[]) => {
           const duration = Date.now() - startTime;
-          
+
           WebSocketLoggingMiddleware.logEvent({
             timestamp: new Date().toISOString(),
             level: LogLevel.DEBUG,
@@ -140,7 +140,7 @@ export class WebSocketLoggingMiddleware {
     // 切断イベントのログ
     socket.on('disconnect', (reason: string) => {
       const authData = WebSocketAuthMiddleware.getAuthData(socket);
-      
+
       WebSocketLoggingMiddleware.logEvent({
         timestamp: new Date().toISOString(),
         level: LogLevel.INFO,
@@ -157,7 +157,7 @@ export class WebSocketLoggingMiddleware {
     // エラーイベントのログ
     socket.on('error', (error: Error) => {
       const authData = WebSocketAuthMiddleware.getAuthData(socket);
-      
+
       WebSocketLoggingMiddleware.logEvent({
         timestamp: new Date().toISOString(),
         level: LogLevel.ERROR,
@@ -213,7 +213,7 @@ export class WebSocketLoggingMiddleware {
 
     // コンソール出力
     const logMessage = this.formatLogMessage(entry);
-    
+
     switch (entry.level) {
       case LogLevel.ERROR:
         console.error(logMessage);
@@ -242,7 +242,7 @@ export class WebSocketLoggingMiddleware {
     const userInfo = entry.username ? `${entry.username}(${entry.role})` : 'Anonymous';
     const durationInfo = entry.duration ? ` [${entry.duration}ms]` : '';
     const errorInfo = entry.error ? ` ERROR: ${entry.error}` : '';
-    
+
     return `[${entry.timestamp}] ${entry.level} 🔌 ${entry.namespace}/${entry.socketId} | ${userInfo} | ${entry.event}${durationInfo}${errorInfo}`;
   }
 
@@ -259,7 +259,7 @@ export class WebSocketLoggingMiddleware {
           return '***MASKED***';
         }
         if (typeof key === 'string' && key.toLowerCase().includes('token')) {
-          return typeof value === 'string' && value.length > 10 
+          return typeof value === 'string' && value.length > 10
             ? `${value.substring(0, 10)}...`
             : '***MASKED***';
         }

@@ -22,8 +22,8 @@ export interface ServerToClientEvents {
   'analytics:updated': (data: any) => void;
   'participant:joined': (data: any) => void;
   'participant:left': (data: any) => void;
-  'error': (data: any) => void;
-  'notification': (data: any) => void;
+  error: (data: any) => void;
+  notification: (data: any) => void;
 }
 
 export interface ClientToServerEvents {
@@ -114,7 +114,7 @@ export class SocketManager {
     this.setupNamespaces();
 
     // グローバル接続エラーハンドリング
-    this.io.engine.on('connection_error', (err) => {
+    this.io.engine.on('connection_error', err => {
       console.error('❌ Socket.IO接続エラー:', err);
     });
 
@@ -129,11 +129,11 @@ export class SocketManager {
     // プレゼンター名前空間
     const presenterNS = this.io.of('/presenter');
     this.setupNamespaceMiddleware(presenterNS, NamespaceType.PRESENTER);
-    
+
     // 参加者名前空間
     const participantNS = this.io.of('/participant');
     this.setupNamespaceMiddleware(participantNS, NamespaceType.PARTICIPANT);
-    
+
     // 管理者名前空間（将来の拡張用）
     const adminNS = this.io.of('/admin');
     this.setupNamespaceMiddleware(adminNS, NamespaceType.ADMIN);
@@ -154,12 +154,12 @@ export class SocketManager {
         namespace.use(WebSocketAuthMiddleware.createAuthMiddleware());
         namespace.use(WebSocketAuthMiddleware.requirePresenterRole());
         break;
-      
+
       case NamespaceType.PARTICIPANT:
         // 参加者は認証済みユーザーか匿名ユーザー両方を許可
         namespace.use((socket, next) => {
           // まず認証を試行
-          WebSocketAuthMiddleware.createAuthMiddleware()(socket, (authErr) => {
+          WebSocketAuthMiddleware.createAuthMiddleware()(socket, authErr => {
             if (authErr) {
               // 認証失敗時は匿名参加者として許可
               WebSocketAuthMiddleware.allowAnonymousParticipant()(socket, next);
@@ -169,7 +169,7 @@ export class SocketManager {
           });
         });
         break;
-      
+
       case NamespaceType.ADMIN:
         namespace.use(WebSocketAuthMiddleware.createAuthMiddleware());
         // 将来的に管理者権限チェックを追加
@@ -185,7 +185,11 @@ export class SocketManager {
   /**
    * ソケット接続処理
    */
-  private handleConnection(socket: TypedSocket, namespace: TypedNamespace, type: NamespaceType): void {
+  private handleConnection(
+    socket: TypedSocket,
+    namespace: TypedNamespace,
+    type: NamespaceType
+  ): void {
     // イベントロガーを追加
     WebSocketLoggingMiddleware.attachEventLogger(socket);
 
@@ -196,24 +200,21 @@ export class SocketManager {
     this.updateConnectionStats('connect', socket, namespace);
 
     // 切断処理
-    socket.on('disconnect', (reason) => {
-      WebSocketLoggingMiddleware.logCustomEvent(
-        socket, 
-        LogLevel.INFO, 
-        `${type}_disconnect`, 
-        { reason }
-      );
-      
+    socket.on('disconnect', reason => {
+      WebSocketLoggingMiddleware.logCustomEvent(socket, LogLevel.INFO, `${type}_disconnect`, {
+        reason,
+      });
+
       this.updateConnectionStats('disconnect', socket, namespace);
       this.cleanupSocketRooms(socket);
     });
 
     // エラーハンドリング
-    socket.on('error', (error) => {
+    socket.on('error', error => {
       WebSocketLoggingMiddleware.logCustomEvent(
-        socket, 
-        LogLevel.ERROR, 
-        `${type}_error`, 
+        socket,
+        LogLevel.ERROR,
+        `${type}_error`,
         undefined,
         error.message
       );
@@ -225,7 +226,11 @@ export class SocketManager {
   /**
    * 基本的なイベントハンドラーの設定
    */
-  private setupBasicEventHandlers(socket: TypedSocket, namespace: TypedNamespace, type: NamespaceType): void {
+  private setupBasicEventHandlers(
+    socket: TypedSocket,
+    namespace: TypedNamespace,
+    type: NamespaceType
+  ): void {
     // テスト用のエコーイベント
     socket.on('echo' as any, (data: any, callback?: (response: any) => void) => {
       const response = {
@@ -235,26 +240,23 @@ export class SocketManager {
         namespace: namespace.name,
         type,
       };
-      
+
       if (callback) {
         callback(response);
       }
-      
-      WebSocketLoggingMiddleware.logCustomEvent(
-        socket, 
-        LogLevel.DEBUG, 
-        'echo_handled', 
-        { dataSize: JSON.stringify(data).length }
-      );
+
+      WebSocketLoggingMiddleware.logCustomEvent(socket, LogLevel.DEBUG, 'echo_handled', {
+        dataSize: JSON.stringify(data).length,
+      });
     });
 
     // ピン/ポンによる接続確認
     socket.on('ping' as any, (callback?: (response: any) => void) => {
       if (callback) {
-        callback({ 
-          pong: true, 
+        callback({
+          pong: true,
           timestamp: new Date().toISOString(),
-          namespace: namespace.name 
+          namespace: namespace.name,
         });
       }
     });
@@ -282,7 +284,7 @@ export class SocketManager {
   public async getPresentationParticipantCount(presentationId: PresentationId): Promise<number> {
     const roomName = `presentation-${presentationId}`;
     const participantNS = this.getNamespace(NamespaceType.PARTICIPANT);
-    
+
     const sockets = await participantNS.in(roomName).fetchSockets();
     return sockets.length;
   }
@@ -297,9 +299,9 @@ export class SocketManager {
   ): void {
     const roomName = `presentation-${presentationId}`;
     const participantNS = this.getNamespace(NamespaceType.PARTICIPANT);
-    
+
     (participantNS as any).to(roomName).emit(event, data);
-    
+
     console.log(`📢 参加者にブロードキャスト: ${event} -> ${roomName}`);
   }
 
@@ -313,9 +315,9 @@ export class SocketManager {
   ): void {
     const roomName = `presenter-${presentationId}`;
     const presenterNS = this.getNamespace(NamespaceType.PRESENTER);
-    
+
     (presenterNS as any).to(roomName).emit(event, data);
-    
+
     console.log(`📢 プレゼンターにブロードキャスト: ${event} -> ${roomName}`);
   }
 
@@ -324,19 +326,19 @@ export class SocketManager {
    */
   public async getRoomStats(): Promise<RoomInfo[]> {
     const stats: RoomInfo[] = [];
-    
+
     // 各名前空間のRoomをチェック
     for (const nsType of Object.values(NamespaceType)) {
       const namespace = this.getNamespace(nsType);
       const adapter = namespace.adapter;
-      
+
       for (const [roomName] of adapter.rooms) {
         // システムルーム（ソケットIDと同じ名前のルーム）をスキップ
         if (roomName.startsWith('socket_')) continue;
-        
+
         const sockets = await namespace.in(roomName).fetchSockets();
         const existingRoom = this.roomStats.get(roomName);
-        
+
         const roomInfo: RoomInfo = {
           name: roomName,
           type: this.getRoomType(roomName),
@@ -346,36 +348,37 @@ export class SocketManager {
           createdAt: existingRoom?.createdAt || new Date(),
           lastActivity: new Date(),
         };
-        
+
         stats.push(roomInfo);
         this.roomStats.set(roomName, roomInfo);
       }
     }
-    
+
     return stats;
   }
 
   /**
    * 接続統計の更新
    */
-  private updateConnectionStats(action: 'connect' | 'disconnect', socket: TypedSocket, namespace: TypedNamespace): void {
+  private updateConnectionStats(
+    action: 'connect' | 'disconnect',
+    socket: TypedSocket,
+    namespace: TypedNamespace
+  ): void {
     const authData = WebSocketAuthMiddleware.getAuthData(socket);
-    
-    WebSocketLoggingMiddleware.logCustomEvent(
-      socket,
-      LogLevel.INFO,
-      `connection_stats`,
-      {
-        action,
-        namespace: namespace.name,
-        connectedSockets: namespace.sockets.size,
-        userInfo: authData ? {
-          userId: authData.userId,
-          username: authData.username,
-          role: authData.role,
-        } : { anonymous: true }
-      }
-    );
+
+    WebSocketLoggingMiddleware.logCustomEvent(socket, LogLevel.INFO, `connection_stats`, {
+      action,
+      namespace: namespace.name,
+      connectedSockets: namespace.sockets.size,
+      userInfo: authData
+        ? {
+            userId: authData.userId,
+            username: authData.username,
+            role: authData.role,
+          }
+        : { anonymous: true },
+    });
   }
 
   /**
@@ -385,12 +388,9 @@ export class SocketManager {
     // ソケットが参加していたRoomの情報をログ出力
     const rooms = Array.from(socket.rooms).filter(room => room !== socket.id);
     if (rooms.length > 0) {
-      WebSocketLoggingMiddleware.logCustomEvent(
-        socket,
-        LogLevel.DEBUG,
-        'room_cleanup',
-        { leftRooms: rooms }
-      );
+      WebSocketLoggingMiddleware.logCustomEvent(socket, LogLevel.DEBUG, 'room_cleanup', {
+        leftRooms: rooms,
+      });
     }
   }
 
@@ -409,7 +409,7 @@ export class SocketManager {
    */
   private extractPresentationId(roomName: string): PresentationId | undefined {
     const match = roomName.match(/^(presentation|slide|presenter)-(.+?)(?:-\d+)?$/);
-    return match ? match[2] as PresentationId : undefined;
+    return match ? (match[2] as PresentationId) : undefined;
   }
 
   /**
@@ -431,7 +431,7 @@ export class SocketManager {
    * サーバーの停止
    */
   public async close(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.io.close(() => {
         console.log('🔌 Socket.IOサーバーを停止しました');
         resolve();
@@ -449,7 +449,7 @@ export class SocketManager {
   } {
     const namespaceStats: Record<string, number> = {};
     let totalConnections = 0;
-    
+
     // 各名前空間の接続数を集計
     for (const nsType of Object.values(NamespaceType)) {
       const namespace = this.getNamespace(nsType);
@@ -457,7 +457,7 @@ export class SocketManager {
       namespaceStats[`/${nsType}`] = connectionCount;
       totalConnections += connectionCount;
     }
-    
+
     return {
       totalConnections,
       namespaceStats,

@@ -50,20 +50,20 @@ export class WebSocketAuthMiddleware {
       try {
         // Authorization ヘッダーまたはクエリパラメータからトークンを取得
         let token: string | undefined;
-        
+
         // Authorizationヘッダーから取得を試行
         const authHeader = socket.handshake.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
           token = authHeader.substring(7);
         }
-        
+
         // クエリパラメータから取得を試行
         if (!token && socket.handshake.query.token) {
-          token = Array.isArray(socket.handshake.query.token) 
-            ? socket.handshake.query.token[0] 
+          token = Array.isArray(socket.handshake.query.token)
+            ? socket.handshake.query.token[0]
             : socket.handshake.query.token;
         }
-        
+
         // トークンが見つからない場合
         if (!token) {
           console.warn(`🚫 認証失敗: トークンが提供されていません (Socket ID: ${socket.id})`);
@@ -72,7 +72,7 @@ export class WebSocketAuthMiddleware {
 
         // JWTトークンの検証
         const decoded = jwt.verify(token, config.jwt.secret) as SocketJwtPayload;
-        
+
         // ソケットデータに認証情報を設定
         socket.data = {
           userId: decoded.userId,
@@ -81,19 +81,21 @@ export class WebSocketAuthMiddleware {
           sessionId: socket.handshake.query.sessionId as string,
         };
 
-        console.log(`✅ Socket.IO認証成功: ${decoded.username} (${decoded.role}) - Socket ID: ${socket.id}`);
+        console.log(
+          `✅ Socket.IO認証成功: ${decoded.username} (${decoded.role}) - Socket ID: ${socket.id}`
+        );
         next();
       } catch (error) {
         console.error(`🚫 Socket.IO認証エラー (Socket ID: ${socket.id}):`, error);
-        
+
         if (error instanceof jwt.JsonWebTokenError) {
           return next(new Error('無効な認証トークンです'));
         }
-        
+
         if (error instanceof jwt.TokenExpiredError) {
           return next(new Error('認証トークンの有効期限が切れています'));
         }
-        
+
         return next(new Error('認証処理中にエラーが発生しました'));
       }
     };
@@ -105,13 +107,17 @@ export class WebSocketAuthMiddleware {
   static requirePresenterRole() {
     return (socket: Socket, next: (err?: ExtendedError) => void) => {
       const authSocket = socket as AuthenticatedSocket;
-      
+
       if (!authSocket.data || authSocket.data.role !== 'presenter') {
-        console.warn(`🚫 権限不足: プレゼンター権限が必要 (User: ${authSocket.data?.username}, Socket ID: ${socket.id})`);
+        console.warn(
+          `🚫 権限不足: プレゼンター権限が必要 (User: ${authSocket.data?.username}, Socket ID: ${socket.id})`
+        );
         return next(new Error('プレゼンター権限が必要です'));
       }
-      
-      console.log(`✅ プレゼンター権限確認済み: ${authSocket.data.username} - Socket ID: ${socket.id}`);
+
+      console.log(
+        `✅ プレゼンター権限確認済み: ${authSocket.data.username} - Socket ID: ${socket.id}`
+      );
       next();
     };
   }
@@ -122,12 +128,14 @@ export class WebSocketAuthMiddleware {
   static requireParticipantRole() {
     return (socket: Socket, next: (err?: ExtendedError) => void) => {
       const authSocket = socket as AuthenticatedSocket;
-      
+
       if (!authSocket.data || authSocket.data.role !== 'participant') {
-        console.warn(`🚫 権限不足: 参加者権限が必要 (User: ${authSocket.data?.username}, Socket ID: ${socket.id})`);
+        console.warn(
+          `🚫 権限不足: 参加者権限が必要 (User: ${authSocket.data?.username}, Socket ID: ${socket.id})`
+        );
         return next(new Error('参加者権限が必要です'));
       }
-      
+
       console.log(`✅ 参加者権限確認済み: ${authSocket.data.username} - Socket ID: ${socket.id}`);
       next();
     };
