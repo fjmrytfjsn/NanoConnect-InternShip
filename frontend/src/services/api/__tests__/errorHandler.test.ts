@@ -266,7 +266,9 @@ describe('ErrorHandler', () => {
       it('認証トークンをクリアして適切にリダイレクトする', () => {
         // location.href のセッターをモック
         const mockLocationHref = jest.fn();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (window as any).location;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).location = {
           pathname: '/dashboard',
           set href(url: string) {
@@ -289,7 +291,9 @@ describe('ErrorHandler', () => {
 
       it('ログインページにいる場合はリダイレクトしない', () => {
         const mockLocationHref = jest.fn();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (window as any).location;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).location = {
           pathname: '/login',
           set href(url: string) {

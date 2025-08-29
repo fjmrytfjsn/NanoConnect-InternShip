@@ -412,7 +412,7 @@ export class SlideApi {
       Array<{
         id: string;
         action: 'create' | 'update' | 'delete';
-        changes: Record<string, any>;
+        changes: Record<string, unknown>;
         timestamp: string;
         userId: string;
         username: string;
@@ -424,7 +424,7 @@ export class SlideApi {
         Array<{
           id: string;
           action: 'create' | 'update' | 'delete';
-          changes: Record<string, any>;
+          changes: Record<string, unknown>;
           timestamp: string;
           userId: string;
           username: string;

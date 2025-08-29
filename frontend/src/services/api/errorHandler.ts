@@ -12,7 +12,7 @@ export type AppError = {
   type: 'api' | 'network' | 'validation' | 'business' | 'unknown';
   message: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   originalError?: Error;
   timestamp: string;
   userFriendlyMessage: string;

@@ -11,25 +11,32 @@ import {
 import axios from 'axios';
 
 // axiosをモック
-jest.mock('axios', () => ({
-  default: {
-    create: jest.fn(() => ({
-      get: jest.fn(),
-      post: jest.fn(),
-      put: jest.fn(),
-      patch: jest.fn(),
-      delete: jest.fn(),
-      interceptors: {
-        request: {
-          use: jest.fn(),
-        },
-        response: {
-          use: jest.fn(),
-        },
+jest.mock('axios', () => {
+  const mockAxiosInstance = {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: {
+        use: jest.fn(),
       },
-    })),
-  },
-}));
+      response: {
+        use: jest.fn(),
+      },
+    },
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      create: jest.fn(() => mockAxiosInstance),
+      ...mockAxiosInstance,
+    },
+    create: jest.fn(() => mockAxiosInstance),
+  };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -111,12 +118,14 @@ describe('ApiClient', () => {
   });
 
   describe('HTTP メソッド', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockAxiosInstance: any;
 
     beforeEach(() => {
       // メソッドのモックをリセット
       jest.clearAllMocks();
       // ApiClientが内部で使用するaxiosInstanceを取得
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockAxiosInstance = (apiClient as any).axiosInstance;
     });
 
@@ -252,12 +261,14 @@ describe('ApiClient', () => {
   });
 
   describe('safeGet メソッド', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockAxiosInstance: any;
 
     beforeEach(() => {
       // メソッドのモックをリセット
       jest.clearAllMocks();
       // ApiClientが内部で使用するaxiosInstanceを取得
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockAxiosInstance = (apiClient as any).axiosInstance;
     });
 

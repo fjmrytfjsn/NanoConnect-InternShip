@@ -160,8 +160,14 @@ export const typeGuards = {
   /**
    * レスポンスがページネーション付きかどうか判定
    */
-  isPaginatedResponse: <T>(response: any): response is PaginatedResponse<T> => {
-    return response && typeof response === 'object' && 'pagination' in response;
+  isPaginatedResponse: <T>(
+    response: unknown
+  ): response is PaginatedResponse<T> => {
+    return (
+      response != null &&
+      typeof response === 'object' &&
+      'pagination' in response
+    );
   },
 };
 

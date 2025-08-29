@@ -33,13 +33,13 @@ export const HTTP_STATUS = {
 export class ApiClientError extends Error {
   public status: number;
   public code: string;
-  public details?: Record<string, any>;
+  public details?: Record<string, unknown>;
 
   constructor(
     message: string,
     status: number,
     code: string = 'UNKNOWN_ERROR',
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'ApiClientError';
@@ -156,7 +156,7 @@ export class ApiClient {
 
     const { response } = error;
     const status = response.status;
-    const data = response.data as any;
+    const data = response.data as Record<string, unknown>;
 
     // エラーログ（開発時のみ）
     if (process.env.NODE_ENV === 'development') {
@@ -243,7 +243,7 @@ export class ApiClient {
   /**
    * POSTリクエスト
    */
-  public async post<T, D = any>(
+  public async post<T, D = unknown>(
     url: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -255,7 +255,7 @@ export class ApiClient {
   /**
    * PUTリクエスト
    */
-  public async put<T, D = any>(
+  public async put<T, D = unknown>(
     url: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -267,7 +267,7 @@ export class ApiClient {
   /**
    * PATCHリクエスト
    */
-  public async patch<T, D = any>(
+  public async patch<T, D = unknown>(
     url: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -290,7 +290,10 @@ export class ApiClient {
   public async uploadFile<T>(
     url: string,
     file: File,
-    onUploadProgress?: (progressEvent: any) => void
+    onUploadProgress?: (progressEvent: {
+      loaded: number;
+      total?: number;
+    }) => void
   ): Promise<T> {
     const formData = new FormData();
     formData.append('file', file);
@@ -376,11 +379,11 @@ export const apiClient = new ApiClient();
 export const api = {
   get: <T>(url: string, config?: AxiosRequestConfig) =>
     apiClient.get<T>(url, config),
-  post: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
+  post: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.post<T, D>(url, data, config),
-  put: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
+  put: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.put<T, D>(url, data, config),
-  patch: <T, D = any>(url: string, data?: D, config?: AxiosRequestConfig) =>
+  patch: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
     apiClient.patch<T, D>(url, data, config),
   delete: <T>(url: string, config?: AxiosRequestConfig) =>
     apiClient.delete<T>(url, config),
