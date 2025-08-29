@@ -11,6 +11,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { config } from '@/config/app';
 import { SQLiteConnection } from '@/infrastructure/database/SQLiteConnection';
 import { slideRoutes } from '@/presentation/routes/slideRoutes';
+import { SocketManager } from '@/infrastructure/socket/SocketManager';
 
 // プレゼンテーション関連のインポート
 import { SQLitePresentationRepository } from '@/infrastructure/database/repositories/SQLitePresentationRepository';
@@ -32,7 +33,7 @@ import { createParticipantRoutes } from '@/presentation/routes/participantRoutes
 class NanoConnectServer {
   private app: express.Application;
   private httpServer: ReturnType<typeof createServer>;
-  private io: SocketIOServer;
+  private socketManager: SocketManager;
   private database: SQLiteConnection;
 
   constructor() {
@@ -40,8 +41,8 @@ class NanoConnectServer {
     this.httpServer = createServer(this.app);
     this.database = SQLiteConnection.getInstance();
 
-    // Socket.IOの初期化
-    this.io = new SocketIOServer(this.httpServer, {
+    // Socket.IOマネージャーの初期化
+    this.socketManager = new SocketManager(this.httpServer, {
       cors: {
         origin: config.cors.origin,
         credentials: config.cors.credentials,
@@ -63,7 +64,7 @@ class NanoConnectServer {
       // ルートの設定（Phase1では基本的なヘルスチェックのみ）
       this.setupRoutes();
 
-      // Socket.IOの設定（Phase1では基本設定のみ）
+      // Socket.IOの設定（Phase4で詳細実装）
       this.setupSocketIO();
 
       console.log('✅ サーバーの初期化が完了しました');
@@ -228,23 +229,9 @@ class NanoConnectServer {
    * Socket.IOの設定
    */
   private setupSocketIO(): void {
-    this.io.on('connection', socket => {
-      console.log(`🔗 クライアントが接続しました: ${socket.id}`);
-
-      // 基本的な接続処理（Phase4で詳細実装）
-      socket.on('disconnect', reason => {
-        console.log(`🔌 クライアントが切断しました: ${socket.id}, 理由: ${reason}`);
-      });
-
-      // テスト用のエコーイベント
-      socket.on('echo', (data, callback) => {
-        callback?.({
-          message: 'Echo received',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      });
-    });
+    // 新しいSocketManagerを使用して初期化
+    this.socketManager.initialize();
+    console.log('🔗 Socket.IOが新しいマネージャーで初期化されました');
   }
 
   /**
@@ -272,13 +259,20 @@ class NanoConnectServer {
       console.log('📡 HTTPサーバーを停止しました');
     });
 
-    this.io.close(() => {
+    this.socketManager.close().then(() => {
       console.log('🔌 Socket.IOサーバーを停止しました');
     });
 
     this.database.close();
 
     console.log('✅ サーバーの停止が完了しました');
+  }
+
+  /**
+   * Socket.IOマネージャーの取得
+   */
+  public getSocketManager(): SocketManager {
+    return this.socketManager;
   }
 }
 
