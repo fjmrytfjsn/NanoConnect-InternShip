@@ -51,6 +51,27 @@ export class JoinPresentationUseCase {
         };
       }
 
+      // アクセスコードの有効期限チェック
+      if (!presentation.isAccessCodeValid()) {
+        const remainingMinutes = presentation.getAccessCodeRemainingMinutes();
+        const message = remainingMinutes === 0 
+          ? 'アクセスコードの有効期限が切れています。'
+          : 'アクセスコードの有効期限が切れています。新しいコードを取得してください。';
+        
+        return {
+          success: false,
+          sessionId: '',
+          presentation: {
+            id: presentation.id,
+            title: presentation.title,
+            description: presentation.description,
+            isActive: presentation.isActive,
+            currentSlideIndex: presentation.currentSlideIndex,
+          },
+          message,
+        };
+      }
+
       // セッションIDを生成
       const sessionId = SessionId.generate();
 

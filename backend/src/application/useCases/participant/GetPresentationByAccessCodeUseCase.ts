@@ -37,9 +37,13 @@ export class GetPresentationByAccessCodeUseCase {
       // プレゼンテーション統計情報を取得
       const statistics = await this.presentationRepository.getStatistics(presentation.id);
 
-      // 成功レスポンス
+      // アクセスコードの有効期限情報を取得
+      const remainingMinutes = presentation.getAccessCodeRemainingMinutes();
+      const isExpired = !presentation.isAccessCodeValid();
+
+      // 成功レスポンス（有効期限切れでも情報は返す）
       return {
-        success: true,
+        success: !isExpired, // 有効期限切れの場合はfalse
         accessCode: accessCode.toDisplayFormat(),
         presentation: {
           id: presentation.id,
@@ -50,6 +54,11 @@ export class GetPresentationByAccessCodeUseCase {
           totalSlides: statistics?.totalSlides || 0,
           participantCount: statistics?.totalParticipants || 0,
         },
+        message: isExpired 
+          ? 'アクセスコードの有効期限が切れています。'
+          : remainingMinutes !== null 
+            ? `アクセスコードの有効期限まで約${remainingMinutes}分です。`
+            : undefined,
       };
 
     } catch (error) {

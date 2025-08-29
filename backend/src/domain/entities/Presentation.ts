@@ -13,6 +13,7 @@ export interface PresentationProps {
   accessCode: AccessCode;
   isActive: boolean;
   currentSlideIndex: number;
+  accessCodeExpirationAt?: Timestamp; // アクセスコード有効期限
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -99,6 +100,55 @@ export class Presentation extends Entity<PresentationId> {
 
   get updatedAt(): Timestamp {
     return this._props.updatedAt;
+  }
+
+  get accessCodeExpirationAt(): Timestamp | undefined {
+    return this._props.accessCodeExpirationAt;
+  }
+
+  // アクセスコードの有効性チェック
+  public isAccessCodeValid(): boolean {
+    // 有効期限が設定されていない場合は常に有効
+    if (!this._props.accessCodeExpirationAt) {
+      return true;
+    }
+
+    const now = new Date();
+    const expirationDate = new Date(this._props.accessCodeExpirationAt);
+    
+    return now <= expirationDate;
+  }
+
+  // アクセスコード有効期限の設定
+  public setAccessCodeExpiration(expirationMinutes: number | null): void {
+    if (expirationMinutes === null || expirationMinutes <= 0) {
+      // 無期限に設定
+      this._props.accessCodeExpirationAt = undefined;
+    } else {
+      // 現在時刻から指定分後の時刻を設定
+      const expirationDate = new Date();
+      expirationDate.setMinutes(expirationDate.getMinutes() + expirationMinutes);
+      this._props.accessCodeExpirationAt = expirationDate.toISOString();
+    }
+
+    this._props.updatedAt = new Date().toISOString();
+  }
+
+  // アクセスコードの残り有効期限（分）を取得
+  public getAccessCodeRemainingMinutes(): number | null {
+    if (!this._props.accessCodeExpirationAt) {
+      return null; // 無期限
+    }
+
+    const now = new Date();
+    const expirationDate = new Date(this._props.accessCodeExpirationAt);
+    const diffMs = expirationDate.getTime() - now.getTime();
+    
+    if (diffMs <= 0) {
+      return 0; // 期限切れ
+    }
+
+    return Math.ceil(diffMs / (1000 * 60)); // 分に変換（切り上げ）
   }
 
   // ビジネスロジック：プレゼンテーション情報の更新
