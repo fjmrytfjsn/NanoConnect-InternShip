@@ -5,7 +5,6 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  root: '.',
   publicDir: 'public',
   resolve: {
     alias: {
@@ -37,10 +36,5 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'public/index.html'),
-      },
-    },
   },
 })
