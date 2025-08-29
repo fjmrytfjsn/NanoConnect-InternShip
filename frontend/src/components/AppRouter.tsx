@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import PresentationFormPage from '@/pages/PresentationFormPage';
 import { SlideEditorDemo } from '@/pages/SlideEditorDemo';
 import { PresenterDashboard } from '@/pages/PresenterDashboard';
+import { ParticipantPage } from '@/pages/ParticipantPage';
 
 export const AppRouter: React.FC = () => {
   return (
@@ -21,6 +22,8 @@ export const AppRouter: React.FC = () => {
           />
           <Route path="/slide-editor-demo" element={<SlideEditorDemo />} />
           <Route path="/presenter/dashboard" element={<PresenterDashboard />} />
+          <Route path="/participant" element={<ParticipantPage />} />
+          <Route path="/participant/:accessCode" element={<ParticipantPage />} />
           <Route path="*" element={<div>404 - ページが見つかりません</div>} />
         </Routes>
       </Layout>
