@@ -26,7 +26,7 @@ export class ParticipantController {
       if (!accessCode) {
         // 疑わしい活動として記録
         recordFailedAttempt(req);
-        
+
         res.status(400).json({
           success: false,
           sessionId: '',
@@ -42,7 +42,8 @@ export class ParticipantController {
       }
 
       // クライアントのIPアドレスを取得
-      const clientIpAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
+      const clientIpAddress =
+        req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
       const userAgent = req.get('User-Agent');
 
       const joinRequest: JoinPresentationRequestDto = {
@@ -60,13 +61,12 @@ export class ParticipantController {
 
       const statusCode = result.success ? 200 : 400;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('プレゼンテーション参加エラー:', error);
-      
+
       // エラー時も疑わしい活動として記録
       recordFailedAttempt(req);
-      
+
       res.status(500).json({
         success: false,
         sessionId: '',
@@ -92,7 +92,7 @@ export class ParticipantController {
       if (!accessCode) {
         // 疑わしい活動として記録
         recordFailedAttempt(req);
-        
+
         res.status(400).json({
           success: false,
           accessCode: '',
@@ -116,13 +116,12 @@ export class ParticipantController {
 
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('アクセスコード情報取得エラー:', error);
-      
+
       // エラー時も疑わしい活動として記録
       recordFailedAttempt(req);
-      
+
       res.status(500).json({
         success: false,
         accessCode: req.params.accessCode || '',

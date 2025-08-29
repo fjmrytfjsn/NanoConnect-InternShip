@@ -210,7 +210,9 @@ class NanoConnectServer {
 
     // ユースケースの初期化
     const joinPresentationUseCase = new JoinPresentationUseCase(presentationRepository);
-    const getPresentationByAccessCodeUseCase = new GetPresentationByAccessCodeUseCase(presentationRepository);
+    const getPresentationByAccessCodeUseCase = new GetPresentationByAccessCodeUseCase(
+      presentationRepository
+    );
 
     // コントローラーの初期化
     const participantController = new ParticipantController(

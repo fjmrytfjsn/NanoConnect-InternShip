@@ -47,15 +47,15 @@ class SecurityManager {
     // X-Forwarded-For, X-Real-IP, などのヘッダーも考慮
     const forwarded = req.headers['x-forwarded-for'] as string;
     const realIP = req.headers['x-real-ip'] as string;
-    
+
     if (forwarded) {
       return forwarded.split(',')[0].trim();
     }
-    
+
     if (realIP) {
       return realIP;
     }
-    
+
     return req.ip || req.connection.remoteAddress || 'unknown';
   }
 
@@ -80,7 +80,7 @@ class SecurityManager {
   public recordSuspiciousActivity(req: Request): void {
     const ip = this.getClientIP(req);
     const now = Date.now();
-    
+
     if (!this.suspiciousActivities[ip]) {
       this.suspiciousActivities[ip] = {
         count: 1,
@@ -89,7 +89,7 @@ class SecurityManager {
       };
     } else {
       const activity = this.suspiciousActivities[ip];
-      
+
       if (activity.resetTime < now) {
         // リセット時間を過ぎている場合、カウンターをリセット
         activity.count = 1;
@@ -97,11 +97,13 @@ class SecurityManager {
         activity.blocked = false;
       } else {
         activity.count++;
-        
+
         // 制限を超えた場合ブロック
         if (activity.count >= this.options.maxSuspiciousAttempts!) {
           activity.blocked = true;
-          console.warn(`🚫 疑わしい活動により IP ${ip} をブロックしました (${activity.count}回の試行)`);
+          console.warn(
+            `🚫 疑わしい活動により IP ${ip} をブロックしました (${activity.count}回の試行)`
+          );
         }
       }
     }
@@ -123,7 +125,7 @@ export function ipRestrictionMiddleware(req: Request, res: Response, next: NextF
   if (securityManager.isIPBlocked(req)) {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     console.warn(`🚫 ブロックされたIPからのアクセス: ${ip}`);
-    
+
     res.status(403).json({
       success: false,
       message: 'アクセスが拒否されました。',
@@ -145,13 +147,17 @@ export function recordFailedAttempt(req: Request): void {
 /**
  * 疑わしい活動の検知ミドルウェア
  */
-export function suspiciousActivityMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function suspiciousActivityMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   const info = securityManager.getSuspiciousActivityInfo(req);
-  
+
   if (info?.blocked) {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     console.warn(`🚫 ブロック済みIPからのアクセス: ${ip}`);
-    
+
     res.status(403).json({
       success: false,
       message: '疑わしい活動が検出されたため、一時的にアクセスを制限しています。',
@@ -171,7 +177,7 @@ export function securityHeadersMiddleware(req: Request, res: Response, next: Nex
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+
   // API用なのでキャッシュを無効化
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');

@@ -29,7 +29,8 @@ class RateLimiter {
       ...options,
       windowMs: options.windowMs || 15 * 60 * 1000, // デフォルト15分
       maxRequests: options.maxRequests || 5, // デフォルト5回
-      keyGenerator: options.keyGenerator || ((req) => req.ip || req.connection.remoteAddress || 'unknown'),
+      keyGenerator:
+        options.keyGenerator || (req => req.ip || req.connection.remoteAddress || 'unknown'),
     };
 
     // 期限切れエントリのクリーンアップを定期実行
@@ -74,7 +75,7 @@ class RateLimiter {
   public getRemainingTime(req: Request): number {
     const key = this.getKey(req);
     const entry = this.store[key];
-    
+
     if (!entry) {
       return 0;
     }
@@ -85,7 +86,7 @@ class RateLimiter {
   public getCurrentCount(req: Request): number {
     const key = this.getKey(req);
     const entry = this.store[key];
-    
+
     return entry?.count || 0;
   }
 }
@@ -94,7 +95,7 @@ class RateLimiter {
 const accessCodeRateLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000, // 15分間
   maxRequests: 5, // 5回まで
-  keyGenerator: (req) => {
+  keyGenerator: req => {
     // IPアドレス + アクセスコードの組み合わせでキーを生成
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const accessCode = req.body?.accessCode || req.params?.accessCode || '';

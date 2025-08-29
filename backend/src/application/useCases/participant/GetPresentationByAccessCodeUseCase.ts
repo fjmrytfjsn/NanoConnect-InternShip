@@ -8,18 +8,18 @@ import { AccessCode } from '@/domain/valueObjects/AccessCode';
 import { AccessCodeInfoResponseDto } from '../../dtos/participant/AccessCodeInfoDto';
 
 export class GetPresentationByAccessCodeUseCase {
-  constructor(
-    private readonly presentationRepository: IPresentationRepository
-  ) {}
+  constructor(private readonly presentationRepository: IPresentationRepository) {}
 
   async execute(accessCodeStr: string): Promise<AccessCodeInfoResponseDto> {
     try {
       // アクセスコードの検証
       const accessCode = AccessCode.from(accessCodeStr);
-      
+
       // アクセスコードでプレゼンテーションを検索
-      const presentation = await this.presentationRepository.findByAccessCode(accessCode.toString());
-      
+      const presentation = await this.presentationRepository.findByAccessCode(
+        accessCode.toString()
+      );
+
       if (!presentation) {
         return {
           success: false,
@@ -54,13 +54,12 @@ export class GetPresentationByAccessCodeUseCase {
           totalSlides: statistics?.totalSlides || 0,
           participantCount: statistics?.totalParticipants || 0,
         },
-        message: isExpired 
+        message: isExpired
           ? 'アクセスコードの有効期限が切れています。'
-          : remainingMinutes !== null 
+          : remainingMinutes !== null
             ? `アクセスコードの有効期限まで約${remainingMinutes}分です。`
             : undefined,
       };
-
     } catch (error) {
       // エラーハンドリング
       return {
@@ -72,7 +71,10 @@ export class GetPresentationByAccessCodeUseCase {
           isActive: false,
           currentSlideIndex: 0,
         },
-        message: error instanceof Error ? error.message : 'アクセスコード情報の取得中にエラーが発生しました。',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'アクセスコード情報の取得中にエラーが発生しました。',
       };
     }
   }

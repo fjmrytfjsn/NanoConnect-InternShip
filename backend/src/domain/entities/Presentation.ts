@@ -115,7 +115,7 @@ export class Presentation extends Entity<PresentationId> {
 
     const now = new Date();
     const expirationDate = new Date(this._props.accessCodeExpirationAt);
-    
+
     return now <= expirationDate;
   }
 
@@ -143,7 +143,7 @@ export class Presentation extends Entity<PresentationId> {
     const now = new Date();
     const expirationDate = new Date(this._props.accessCodeExpirationAt);
     const diffMs = expirationDate.getTime() - now.getTime();
-    
+
     if (diffMs <= 0) {
       return 0; // 期限切れ
     }

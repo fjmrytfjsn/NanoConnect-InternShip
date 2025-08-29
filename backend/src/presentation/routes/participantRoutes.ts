@@ -6,7 +6,11 @@
 import { Router, Request, Response } from 'express';
 import { ParticipantController } from '../controllers/ParticipantController';
 import { accessCodeRateLimit } from '../middlewares/rateLimitMiddleware';
-import { ipRestrictionMiddleware, suspiciousActivityMiddleware, securityHeadersMiddleware } from '../middlewares/securityMiddleware';
+import {
+  ipRestrictionMiddleware,
+  suspiciousActivityMiddleware,
+  securityHeadersMiddleware,
+} from '../middlewares/securityMiddleware';
 
 export function createParticipantRoutes(participantController: ParticipantController): Router {
   const router = Router();
@@ -22,8 +26,10 @@ export function createParticipantRoutes(participantController: ParticipantContro
   );
 
   // アクセスコードによるプレゼンテーション情報取得（認証不要、レート制限あり）
-  router.get('/presentations/code/:accessCode', accessCodeRateLimit, (req: Request, res: Response) =>
-    participantController.getPresentationByAccessCode(req, res)
+  router.get(
+    '/presentations/code/:accessCode',
+    accessCodeRateLimit,
+    (req: Request, res: Response) => participantController.getPresentationByAccessCode(req, res)
   );
 
   return router;
