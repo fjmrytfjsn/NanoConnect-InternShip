@@ -5,7 +5,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { useSocket } from '@/hooks/useSocket';
 import socketReducer from '@/store/slices/socketSlice';
 
 // Socket.IOクライアントをモック
@@ -22,25 +21,30 @@ jest.mock('socket.io-client', () => ({
   })),
 }));
 
-// SocketServiceをモック
-const mockSocketService = {
-  initialize: jest.fn(),
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  emit: jest.fn(),
-  on: jest.fn(),
-  off: jest.fn(),
-  getConnectionState: jest.fn(() => 'disconnected'),
-  isConnected: jest.fn(() => false),
-  getSocket: jest.fn(() => null),
-};
+// SocketServiceを完全にモック
+jest.mock('@/services/socket/SocketService', () => {
+  const mockService = {
+    initialize: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    emit: jest.fn(),
+    on: jest.fn(),
+    off: jest.fn(),
+    getConnectionState: jest.fn(() => 'disconnected'),
+    isConnected: jest.fn(() => false),
+    getSocket: jest.fn(() => null),
+  };
 
-jest.mock('@/services/socket/SocketService', () => ({
-  SocketService: {
-    getInstance: jest.fn(() => mockSocketService),
-  },
-  socketService: mockSocketService,
-}));
+  return {
+    SocketService: {
+      getInstance: () => mockService,
+    },
+    socketService: mockService,
+  };
+});
+
+// useSocketをインポート
+import { useSocket } from '@/hooks/useSocket';
 
 // テスト用ストアを作成
 const createTestStore = () => {
@@ -65,6 +69,9 @@ const createWrapper = (store = createTestStore()) => {
   return WrapperComponent;
 };
 
+// モックされたsocketServiceのインスタンスを取得
+const mockSocketService = require('@/services/socket/SocketService').socketService;
+
 describe('useSocket', () => {
   beforeEach(() => {
     // Windowオブジェクトをモック
@@ -80,6 +87,9 @@ describe('useSocket', () => {
       value: jest.fn(),
       writable: true,
     });
+
+    // すべてのモック関数をクリア
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
