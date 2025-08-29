@@ -18,9 +18,9 @@ export class SlideMapper {
       content: {
         question: slide.question,
         ...(slide.options && { options: slide.options }),
-        settings: slide.isMultipleChoice() 
+        settings: slide.isMultipleChoice()
           ? { allowMultiple: false, showResults: true }
-          : { maxWords: 100 }
+          : { maxWords: 100 },
       },
       order: slide.slideOrder,
       createdAt: slide.createdAt,

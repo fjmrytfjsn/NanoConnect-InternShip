@@ -39,7 +39,7 @@ export class SlideController {
         title,
         type,
         content,
-        order: order ?? -1 // デフォルトは最後尾追加
+        order: order ?? -1, // デフォルトは最後尾追加
       };
 
       // バリデーション
@@ -47,22 +47,21 @@ export class SlideController {
       if (!validation.valid) {
         res.status(400).json({
           success: false,
-          message: validation.message
+          message: validation.message,
         });
         return;
       }
 
       // ユースケース実行
       const result = await this.createSlideUseCase.execute(requestDto);
-      
+
       const statusCode = result.success ? 201 : 400;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド作成エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -76,17 +75,16 @@ export class SlideController {
       const { presentationId } = req.params;
 
       const requestDto: GetSlidesRequestDto = { presentationId };
-      
+
       const result = await this.getSlideUseCase.getSlidesByPresentationId(requestDto);
-      
+
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド一覧取得エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -100,17 +98,16 @@ export class SlideController {
       const { id } = req.params;
 
       const requestDto: GetSlideRequestDto = { slideId: id };
-      
+
       const result = await this.getSlideUseCase.getSlideById(requestDto);
-      
+
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド取得エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -128,28 +125,27 @@ export class SlideController {
         slideId: id,
         ...(title && { title }),
         ...(content && { content }),
-        ...(order !== undefined && { order })
+        ...(order !== undefined && { order }),
       };
 
       // 更新データが空でないかチェック
       if (!title && !content && order === undefined) {
         res.status(400).json({
           success: false,
-          message: '更新するデータが指定されていません'
+          message: '更新するデータが指定されていません',
         });
         return;
       }
 
       const result = await this.updateSlideUseCase.execute(requestDto);
-      
+
       const statusCode = result.success ? 200 : 400;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド更新エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -163,17 +159,16 @@ export class SlideController {
       const { id } = req.params;
 
       const requestDto: DeleteSlideRequestDto = { slideId: id };
-      
+
       const result = await this.deleteSlideUseCase.execute(requestDto);
-      
+
       const statusCode = result.success ? 200 : 400;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド削除エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -191,26 +186,25 @@ export class SlideController {
       if (!Array.isArray(slideOrders)) {
         res.status(400).json({
           success: false,
-          message: 'slideOrdersは配列である必要があります'
+          message: 'slideOrdersは配列である必要があります',
         });
         return;
       }
 
       const requestDto: ReorderSlidesRequestDto = {
         presentationId,
-        slideOrders
+        slideOrders,
       };
 
       const result = await this.reorderSlidesUseCase.execute(requestDto);
-      
+
       const statusCode = result.success ? 200 : 400;
       res.status(statusCode).json(result);
-
     } catch (error) {
       console.error('スライド順序変更エラー:', error);
       res.status(500).json({
         success: false,
-        message: '内部サーバーエラーが発生しました'
+        message: '内部サーバーエラーが発生しました',
       });
     }
   };
@@ -218,20 +212,30 @@ export class SlideController {
   /**
    * スライド作成リクエストのバリデーション
    */
-  private validateCreateSlideRequest(request: CreateSlideRequestDto): { valid: boolean; message: string } {
+  private validateCreateSlideRequest(request: CreateSlideRequestDto): {
+    valid: boolean;
+    message: string;
+  } {
     if (!request.presentationId) {
       return { valid: false, message: 'presentationIdは必須です' };
     }
-    
+
     if (!request.title || request.title.trim().length === 0) {
       return { valid: false, message: 'titleは必須です' };
     }
 
     if (!['multiple_choice', 'word_cloud'].includes(request.type)) {
-      return { valid: false, message: 'typeは multiple_choice または word_cloud である必要があります' };
+      return {
+        valid: false,
+        message: 'typeは multiple_choice または word_cloud である必要があります',
+      };
     }
 
-    if (!request.content || !request.content.question || request.content.question.trim().length === 0) {
+    if (
+      !request.content ||
+      !request.content.question ||
+      request.content.question.trim().length === 0
+    ) {
       return { valid: false, message: 'content.questionは必須です' };
     }
 

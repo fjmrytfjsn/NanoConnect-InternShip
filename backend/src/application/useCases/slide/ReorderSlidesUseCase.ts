@@ -5,7 +5,10 @@
 
 import { ISlideRepository } from '@/domain/repositories/ISlideRepository';
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
-import { ReorderSlidesRequestDto, ReorderSlidesResponseDto } from '@/application/dtos/slide/ReorderSlidesDto';
+import {
+  ReorderSlidesRequestDto,
+  ReorderSlidesResponseDto,
+} from '@/application/dtos/slide/ReorderSlidesDto';
 
 export class ReorderSlidesUseCase {
   constructor(
@@ -20,19 +23,22 @@ export class ReorderSlidesUseCase {
       if (!presentation) {
         return {
           success: false,
-          message: '指定されたプレゼンテーションが見つかりません'
+          message: '指定されたプレゼンテーションが見つかりません',
         };
       }
 
       // 2. プレゼンテーション内の現在のスライドを取得
       const currentSlides = await this.slideRepository.findByPresentationId(request.presentationId);
-      
+
       // 3. リクエストの検証
-      const validationResult = await this.validateReorderRequest(currentSlides, request.slideOrders);
+      const validationResult = await this.validateReorderRequest(
+        currentSlides,
+        request.slideOrders
+      );
       if (!validationResult.valid) {
         return {
           success: false,
-          message: validationResult.message
+          message: validationResult.message,
         };
       }
 
@@ -41,13 +47,12 @@ export class ReorderSlidesUseCase {
 
       return {
         success: true,
-        message: `${request.slideOrders.length}個のスライドの順序が正常に更新されました`
+        message: `${request.slideOrders.length}個のスライドの順序が正常に更新されました`,
       };
-
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : '予期しないエラーが発生しました'
+        message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
       };
     }
   }
@@ -56,17 +61,16 @@ export class ReorderSlidesUseCase {
    * 順序変更リクエストのバリデーション
    */
   private async validateReorderRequest(
-    currentSlides: any[], 
+    currentSlides: any[],
     slideOrders: Array<{ slideId: string; order: number }>
   ): Promise<{ valid: boolean; message: string }> {
-    
     // 1. 重複するスライドIDのチェック
     const slideIds = slideOrders.map(so => so.slideId);
     const uniqueSlideIds = new Set(slideIds);
     if (slideIds.length !== uniqueSlideIds.size) {
       return {
         valid: false,
-        message: '重複するスライドIDが含まれています'
+        message: '重複するスライドIDが含まれています',
       };
     }
 
@@ -76,7 +80,7 @@ export class ReorderSlidesUseCase {
       if (!currentSlideIds.has(slideId)) {
         return {
           valid: false,
-          message: `スライドID ${slideId} はこのプレゼンテーション内に存在しません`
+          message: `スライドID ${slideId} はこのプレゼンテーション内に存在しません`,
         };
       }
     }
@@ -86,7 +90,7 @@ export class ReorderSlidesUseCase {
       if (order < 0) {
         return {
           valid: false,
-          message: 'スライド順序は0以上である必要があります'
+          message: 'スライド順序は0以上である必要があります',
         };
       }
     }
@@ -97,7 +101,7 @@ export class ReorderSlidesUseCase {
     if (orders.length !== uniqueOrders.size) {
       return {
         valid: false,
-        message: '重複する順序が含まれています'
+        message: '重複する順序が含まれています',
       };
     }
 
@@ -107,7 +111,7 @@ export class ReorderSlidesUseCase {
       if (sortedOrders[i] !== i) {
         return {
           valid: false,
-          message: 'スライド順序は0から始まる連続した番号である必要があります'
+          message: 'スライド順序は0から始まる連続した番号である必要があります',
         };
       }
     }

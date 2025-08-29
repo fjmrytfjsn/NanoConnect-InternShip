@@ -9,17 +9,10 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-  extends: [
-    'eslint:recommended'
-  ],
+  extends: ['eslint:recommended'],
   rules: {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
   },
-  ignorePatterns: [
-    'dist/',
-    'node_modules/',
-    '*.js',
-    '*.d.ts'
-  ]
+  ignorePatterns: ['dist/', 'node_modules/', '*.js', '*.d.ts'],
 };

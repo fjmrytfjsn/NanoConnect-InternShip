@@ -6,7 +6,10 @@
 import { SlideType } from '@/domain/valueObjects/SlideType';
 import { ISlideRepository } from '@/domain/repositories/ISlideRepository';
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
-import { UpdateSlideRequestDto, UpdateSlideResponseDto } from '@/application/dtos/slide/UpdateSlideDto';
+import {
+  UpdateSlideRequestDto,
+  UpdateSlideResponseDto,
+} from '@/application/dtos/slide/UpdateSlideDto';
 
 export class UpdateSlideUseCase {
   constructor(
@@ -21,7 +24,7 @@ export class UpdateSlideUseCase {
       if (!slide) {
         return {
           success: false,
-          message: '指定されたスライドが見つかりません'
+          message: '指定されたスライドが見つかりません',
         };
       }
 
@@ -30,7 +33,7 @@ export class UpdateSlideUseCase {
       if (!presentation) {
         return {
           success: false,
-          message: '関連するプレゼンテーションが見つかりません'
+          message: '関連するプレゼンテーションが見つかりません',
         };
       }
 
@@ -40,24 +43,20 @@ export class UpdateSlideUseCase {
         if (!validationResult.valid) {
           return {
             success: false,
-            message: validationResult.message
+            message: validationResult.message,
           };
         }
       }
 
       // 4. スライドの更新
-      slide.update(
-        request.title,
-        request.content?.question,
-        request.content?.options
-      );
+      slide.update(request.title, request.content?.question, request.content?.options);
 
       // 5. 順序変更がある場合
       if (request.order !== undefined && request.order !== slide.slideOrder) {
         if (request.order < 0) {
           return {
             success: false,
-            message: 'スライド順序は0以上である必要があります'
+            message: 'スライド順序は0以上である必要があります',
           };
         }
 
@@ -70,13 +69,12 @@ export class UpdateSlideUseCase {
 
       return {
         success: true,
-        message: 'スライドが正常に更新されました'
+        message: 'スライドが正常に更新されました',
       };
-
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : '予期しないエラーが発生しました'
+        message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
       };
     }
   }
@@ -84,27 +82,30 @@ export class UpdateSlideUseCase {
   /**
    * スライドタイプ別のコンテンツバリデーション
    */
-  private validateSlideContent(slideType: SlideType, content: any): { valid: boolean; message: string } {
+  private validateSlideContent(
+    slideType: SlideType,
+    content: any
+  ): { valid: boolean; message: string } {
     // 多肢選択式の場合
     if (slideType.isMultipleChoice()) {
       if (content.options && content.options.length > 0) {
         if (content.options.length < 2) {
           return {
             valid: false,
-            message: '多肢選択式スライドには2つ以上の選択肢が必要です'
+            message: '多肢選択式スライドには2つ以上の選択肢が必要です',
           };
         }
         if (content.options.length > 10) {
           return {
             valid: false,
-            message: '選択肢は10個以下である必要があります'
+            message: '選択肢は10個以下である必要があります',
           };
         }
         // 空の選択肢チェック
         if (content.options.some((option: string) => !option || option.trim().length === 0)) {
           return {
             valid: false,
-            message: '選択肢に空の項目は含められません'
+            message: '選択肢に空の項目は含められません',
           };
         }
       }
@@ -115,7 +116,7 @@ export class UpdateSlideUseCase {
       if (content.settings?.maxWords && content.settings.maxWords < 1) {
         return {
           valid: false,
-          message: '最大単語数は1以上である必要があります'
+          message: '最大単語数は1以上である必要があります',
         };
       }
     }

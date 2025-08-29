@@ -7,7 +7,10 @@ import { Slide } from '@/domain/entities/Slide';
 import { SlideType } from '@/domain/valueObjects/SlideType';
 import { ISlideRepository } from '@/domain/repositories/ISlideRepository';
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
-import { CreateSlideRequestDto, CreateSlideResponseDto } from '@/application/dtos/slide/CreateSlideDto';
+import {
+  CreateSlideRequestDto,
+  CreateSlideResponseDto,
+} from '@/application/dtos/slide/CreateSlideDto';
 import { SlideMapper } from '@/application/dtos/slide/SlideMapper';
 import { SlideId } from '@/types/common';
 
@@ -25,7 +28,7 @@ export class CreateSlideUseCase {
         return {
           success: false,
           message: '指定されたプレゼンテーションが見つかりません',
-          slide: null as any
+          slide: null as any,
         };
       }
 
@@ -38,7 +41,7 @@ export class CreateSlideUseCase {
         return {
           success: false,
           message: validationResult.message,
-          slide: null as any
+          slide: null as any,
         };
       }
 
@@ -46,7 +49,9 @@ export class CreateSlideUseCase {
       let order = request.order;
       if (order < 0) {
         // 順序が指定されていない場合、最後尾に追加
-        const maxOrder = await this.slideRepository.getMaxOrderByPresentationId(request.presentationId);
+        const maxOrder = await this.slideRepository.getMaxOrderByPresentationId(
+          request.presentationId
+        );
         order = maxOrder + 1;
       }
 
@@ -69,14 +74,13 @@ export class CreateSlideUseCase {
       return {
         success: true,
         message: 'スライドが正常に作成されました',
-        slide: SlideMapper.toDto(slide)
+        slide: SlideMapper.toDto(slide),
       };
-
     } catch (error) {
       return {
         success: false,
         message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
-        slide: null as any
+        slide: null as any,
       };
     }
   }
@@ -84,26 +88,29 @@ export class CreateSlideUseCase {
   /**
    * スライドタイプ別のコンテンツバリデーション
    */
-  private validateSlideContent(slideType: SlideType, content: any): { valid: boolean; message: string } {
+  private validateSlideContent(
+    slideType: SlideType,
+    content: any
+  ): { valid: boolean; message: string } {
     // 多肢選択式の場合
     if (slideType.isMultipleChoice()) {
       if (!content.options || content.options.length < 2) {
         return {
           valid: false,
-          message: '多肢選択式スライドには2つ以上の選択肢が必要です'
+          message: '多肢選択式スライドには2つ以上の選択肢が必要です',
         };
       }
       if (content.options.length > 10) {
         return {
           valid: false,
-          message: '選択肢は10個以下である必要があります'
+          message: '選択肢は10個以下である必要があります',
         };
       }
       // 空の選択肢チェック
       if (content.options.some((option: string) => !option || option.trim().length === 0)) {
         return {
           valid: false,
-          message: '選択肢に空の項目は含められません'
+          message: '選択肢に空の項目は含められません',
         };
       }
     }
@@ -113,7 +120,7 @@ export class CreateSlideUseCase {
       if (content.settings?.maxWords && content.settings.maxWords < 1) {
         return {
           valid: false,
-          message: '最大単語数は1以上である必要があります'
+          message: '最大単語数は1以上である必要があります',
         };
       }
     }

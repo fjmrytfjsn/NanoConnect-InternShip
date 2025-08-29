@@ -5,7 +5,10 @@
 
 import { ISlideRepository } from '@/domain/repositories/ISlideRepository';
 import { IPresentationRepository } from '@/domain/repositories/IPresentationRepository';
-import { DeleteSlideRequestDto, DeleteSlideResponseDto } from '@/application/dtos/slide/DeleteSlideDto';
+import {
+  DeleteSlideRequestDto,
+  DeleteSlideResponseDto,
+} from '@/application/dtos/slide/DeleteSlideDto';
 
 export class DeleteSlideUseCase {
   constructor(
@@ -20,7 +23,7 @@ export class DeleteSlideUseCase {
       if (!slide) {
         return {
           success: false,
-          message: '指定されたスライドが見つかりません'
+          message: '指定されたスライドが見つかりません',
         };
       }
 
@@ -29,7 +32,7 @@ export class DeleteSlideUseCase {
       if (!presentation) {
         return {
           success: false,
-          message: '関連するプレゼンテーションが見つかりません'
+          message: '関連するプレゼンテーションが見つかりません',
         };
       }
 
@@ -38,7 +41,7 @@ export class DeleteSlideUseCase {
       if (slideCount <= 1) {
         return {
           success: false,
-          message: 'プレゼンテーションには最低1つのスライドが必要です'
+          message: 'プレゼンテーションには最低1つのスライドが必要です',
         };
       }
 
@@ -47,7 +50,7 @@ export class DeleteSlideUseCase {
       if (!deleted) {
         return {
           success: false,
-          message: 'スライドの削除に失敗しました'
+          message: 'スライドの削除に失敗しました',
         };
       }
 
@@ -56,13 +59,12 @@ export class DeleteSlideUseCase {
 
       return {
         success: true,
-        message: 'スライドが正常に削除されました'
+        message: 'スライドが正常に削除されました',
       };
-
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : '予期しないエラーが発生しました'
+        message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
       };
     }
   }
@@ -71,7 +73,10 @@ export class DeleteSlideUseCase {
    * スライド削除後の順序再調整
    * 削除されたスライドより後の順序のスライドを前に詰める
    */
-  private async reorderSlidesAfterDeletion(presentationId: string, deletedOrder: number): Promise<void> {
+  private async reorderSlidesAfterDeletion(
+    presentationId: string,
+    deletedOrder: number
+  ): Promise<void> {
     try {
       // 削除されたスライドより後の順序のスライドを取得
       const allSlides = await this.slideRepository.findByPresentationId(presentationId);
@@ -84,7 +89,7 @@ export class DeleteSlideUseCase {
       // 順序を1つずつ前に詰める
       const reorderData = slidesToReorder.map(slide => ({
         slideId: slide.id,
-        order: slide.slideOrder - 1
+        order: slide.slideOrder - 1,
       }));
 
       await this.slideRepository.updateSlidesOrder(reorderData);
