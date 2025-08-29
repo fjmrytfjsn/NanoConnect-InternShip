@@ -227,6 +227,16 @@ export class Presentation extends Entity<PresentationId> {
     this._props.updatedAt = new Date().toISOString();
   }
 
+  // ビジネスロジック：スライド位置を設定（アクティブ状態に関係なく）
+  public goToSlide(slideIndex: number): void {
+    if (slideIndex < 0) {
+      throw new Error('スライドインデックスは0以上である必要があります');
+    }
+
+    this._props.currentSlideIndex = slideIndex;
+    this._props.updatedAt = new Date().toISOString();
+  }
+
   // ビジネスロジック：プレゼンターかどうかの確認
   public isPresenter(userId: UserId): boolean {
     return this._props.presenterId === userId;

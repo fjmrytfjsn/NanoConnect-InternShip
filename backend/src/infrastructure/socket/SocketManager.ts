@@ -22,6 +22,7 @@ export interface ServerToClientEvents {
   'analytics:updated': (data: any) => void;
   'participant:joined': (data: any) => void;
   'participant:left': (data: any) => void;
+  'participant:count-changed': (data: any) => void;
   error: (data: any) => void;
   notification: (data: any) => void;
 }
@@ -30,11 +31,12 @@ export interface ClientToServerEvents {
   'join:presentation': (data: any, callback: (response: any) => void) => void;
   'submit:response': (data: any, callback: (response: any) => void) => void;
   'leave:presentation': (data: any) => void;
-  'control:start': (data: any) => void;
-  'control:stop': (data: any) => void;
-  'control:next-slide': (data: any) => void;
-  'control:prev-slide': (data: any) => void;
-  'control:goto-slide': (data: any) => void;
+  'control:start': (data: any, callback?: (response: any) => void) => void;
+  'control:stop': (data: any, callback?: (response: any) => void) => void;
+  'control:next-slide': (data: any, callback?: (response: any) => void) => void;
+  'control:prev-slide': (data: any, callback?: (response: any) => void) => void;
+  'control:goto-slide': (data: any, callback?: (response: any) => void) => void;
+  'get:participant-count': (data: any, callback?: (response: any) => void) => void;
 }
 
 /**

@@ -16,13 +16,19 @@ import { SocketManager } from '@/infrastructure/socket/SocketManager';
 // プレゼンテーション関連のインポート
 import { SQLitePresentationRepository } from '@/infrastructure/database/repositories/SQLitePresentationRepository';
 import { SQLiteUserRepository } from '@/infrastructure/database/repositories/SQLiteUserRepository';
+import { SQLiteSlideRepository } from '@/infrastructure/database/repositories/SQLiteSlideRepository';
 import { CreatePresentationUseCase } from '@/application/useCases/presentation/CreatePresentationUseCase';
 import { GetPresentationUseCase } from '@/application/useCases/presentation/GetPresentationUseCase';
 import { ListPresentationsUseCase } from '@/application/useCases/presentation/ListPresentationsUseCase';
 import { UpdatePresentationUseCase } from '@/application/useCases/presentation/UpdatePresentationUseCase';
 import { DeletePresentationUseCase } from '@/application/useCases/presentation/DeletePresentationUseCase';
+import { ControlPresentationRealtimeUseCase } from '@/application/useCases/presentation/ControlPresentationRealtimeUseCase';
 import { PresentationController } from '@/presentation/controllers/PresentationController';
 import { createPresentationRoutes } from '@/presentation/routes/presentationRoutes';
+
+// Socket.IOハンドラーのインポート
+import { PresenterHandler } from '@/infrastructure/socket/handlers/PresenterHandler';
+import { NamespaceType } from '@/infrastructure/socket/SocketManager';
 
 // 参加者関連のインポート
 import { JoinPresentationUseCase } from '@/application/useCases/participant/JoinPresentationUseCase';
@@ -229,9 +235,46 @@ class NanoConnectServer {
    * Socket.IOの設定
    */
   private setupSocketIO(): void {
-    // 新しいSocketManagerを使用して初期化
+    // Socket.IOマネージャーを初期化
     this.socketManager.initialize();
+
+    // プレゼンターハンドラーの設定
+    this.setupPresenterHandler();
+
     console.log('🔗 Socket.IOが新しいマネージャーで初期化されました');
+  }
+
+  /**
+   * プレゼンターハンドラーの設定
+   */
+  private setupPresenterHandler(): void {
+    // データベース接続
+    const dbConnection = SQLiteConnection.getInstance();
+
+    // リポジトリの初期化
+    const presentationRepository = new SQLitePresentationRepository(dbConnection);
+    const slideRepository = new SQLiteSlideRepository(dbConnection);
+
+    // プレゼンテーション制御ユースケースの初期化
+    const controlPresentationRealtimeUseCase = new ControlPresentationRealtimeUseCase(
+      presentationRepository,
+      slideRepository
+    );
+
+    // プレゼンター名前空間の取得
+    const presenterNamespace = this.socketManager.getNamespace(NamespaceType.PRESENTER);
+
+    // プレゼンターハンドラーの初期化と登録
+    const presenterHandler = new PresenterHandler(
+      presenterNamespace,
+      controlPresentationRealtimeUseCase,
+      this.socketManager
+    );
+
+    // ハンドラーを登録
+    this.socketManager.registerHandler('presenter', presenterHandler);
+
+    console.log('🎯 プレゼンターハンドラーが設定されました');
   }
 
   /**
