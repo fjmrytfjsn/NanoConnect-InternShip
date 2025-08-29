@@ -12,19 +12,25 @@ export class SQLiteConnection {
   private static _instance: SQLiteConnection;
   private _database: Database.Database;
 
-  private constructor() {
-    // データベースファイルのディレクトリを作成
-    this.ensureDatabaseDirectory();
-
-    this._database = new Database(databaseConfig.path, databaseConfig.options);
-
-    // WALモードを有効化（パフォーマンス向上）
-    this._database.pragma('journal_mode = WAL');
-    this._database.pragma('synchronous = NORMAL');
-    this._database.pragma('cache_size = 1000');
-    this._database.pragma('foreign_keys = ON');
-
-    console.log(`📦 SQLiteデータベースに接続しました: ${databaseConfig.path}`);
+  /**
+   * コンストラクタ（テスト用パスを指定可能）
+   */
+  constructor(databasePath?: string) {
+    if (databasePath) {
+      // テスト用のインメモリデータベース
+      this._database = new Database(databasePath);
+      this._database.pragma('foreign_keys = ON');
+      console.log(`📦 SQLiteデータベースに接続しました: ${databasePath}`);
+    } else {
+      // 通常のデータベース
+      this.ensureDatabaseDirectory();
+      this._database = new Database(databaseConfig.path, databaseConfig.options);
+      this._database.pragma('journal_mode = WAL');
+      this._database.pragma('synchronous = NORMAL');
+      this._database.pragma('cache_size = 1000');
+      this._database.pragma('foreign_keys = ON');
+      console.log(`📦 SQLiteデータベースに接続しました: ${databaseConfig.path}`);
+    }
   }
 
   /**
@@ -35,6 +41,13 @@ export class SQLiteConnection {
       SQLiteConnection._instance = new SQLiteConnection();
     }
     return SQLiteConnection._instance;
+  }
+
+  /**
+   * データベースインスタンスの取得
+   */
+  public get database(): Database.Database {
+    return this._database;
   }
 
   /**
