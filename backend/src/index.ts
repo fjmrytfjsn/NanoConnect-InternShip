@@ -10,6 +10,7 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { config } from '@/config/app';
 import { SQLiteConnection } from '@/infrastructure/database/SQLiteConnection';
+import { slideRoutes } from '@/presentation/routes/slideRoutes';
 
 // プレゼンテーション関連のインポート
 import { SQLitePresentationRepository } from '@/infrastructure/database/repositories/SQLitePresentationRepository';
@@ -97,6 +98,9 @@ class NanoConnectServer {
   private setupRoutes(): void {
     // プレゼンテーションAPIルートの設定
     this.setupPresentationRoutes();
+
+    // スライドAPI（メインAPI）
+    this.app.use('/api', slideRoutes);
 
     // ヘルスチェックエンドポイント
     this.app.get('/health', (_req, res) => {
