@@ -34,6 +34,37 @@
 * .envファイルや設定ファイルはコミットしないこと
   * .env.exampleなどのテンプレートファイルを使用すること
 
+## CI/CDチェック
+
+### 提出前の必須確認事項
+
+* **すべてのコード変更は、CI/CDパイプラインが通ることを確認してから提出すること**
+* プルリクエスト作成前に、以下の項目がローカルでも通ることを確認する：
+
+#### バックエンド確認項目
+
+* TypeScript型チェック: `cd backend && npm run type-check`
+* ESLintチェック: `cd backend && npm run lint`
+* Prettierフォーマットチェック: `cd backend && npm run format:check`
+* 単体テスト: `cd backend && npm run test`
+* ビルド: `cd backend && npm run build`
+
+#### フロントエンド確認項目（該当する場合）
+
+* TypeScript型チェック: `cd frontend && npm run type-check`
+* ESLintチェック: `cd frontend && npm run lint`
+* Prettierフォーマットチェック: `cd frontend && npm run format:check`
+* 単体テスト: `cd frontend && npm test`
+* ビルド: `cd frontend && npm run build`
+
+#### CI/CD失敗時の対応
+
+* CI/CDパイプラインが失敗した場合、**必ず修正してから**マージを行う
+* テスト失敗やlintエラーは即座に対応し、品質基準を満たすこと
+* セキュリティスキャンで問題が検出された場合は適切に対処すること
+
+詳細なCI/CD方針については`docs/guideline.md`の「CI/CD」セクションを参照すること。
+
 ## 質問・確認事項
 
 不明点や判断に迷う場合は：
