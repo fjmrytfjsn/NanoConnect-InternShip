@@ -34,6 +34,33 @@
 * .envファイルや設定ファイルはコミットしないこと
   * .env.exampleなどのテンプレートファイルを使用すること
 
+### CI/CD確認
+
+* **コード提出前の必須チェック事項**
+* プルリクエスト作成前に、以下のCI/CDチェックが**すべて通ることを確認すること**：
+
+#### バックエンドのチェック
+* `cd backend && npm run type-check` - TypeScript型チェック
+* `cd backend && npm run lint` - ESLintによるコード品質チェック
+* `cd backend && npm run format:check` - Prettierによるフォーマットチェック
+* `cd backend && npm run test` - 単体テストと統合テスト
+* `cd backend && npm run build` - ビルド確認
+
+#### フロントエンドのチェック
+* `cd frontend && npm run type-check` - TypeScript型チェック
+* `cd frontend && npm run lint` - ESLintによるコード品質チェック
+* `cd frontend && npm run format:check` - Prettierによるフォーマットチェック
+* `cd frontend && npm test -- --coverage --watchAll=false` - テスト実行
+* `cd frontend && npm run build` - ビルド確認
+
+#### GitHub Actions の確認
+* プルリクエスト作成後、GitHub ActionsのCI/CDパイプライン（`.github/workflows/ci.yml`）がすべて成功していることを確認する
+* 失敗したジョブがある場合は、ログを確認して問題を修正してからマージすること
+
+#### Pre-commitフックの活用
+* `.husky/pre-commit` フックを活用し、コミット前に自動的に品質チェックを実行する
+* フックで失敗した場合は、問題を修正してから再度コミットすること
+
 ## 質問・確認事項
 
 不明点や判断に迷う場合は：
