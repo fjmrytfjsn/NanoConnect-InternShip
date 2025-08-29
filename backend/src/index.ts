@@ -23,6 +23,12 @@ import { DeletePresentationUseCase } from '@/application/useCases/presentation/D
 import { PresentationController } from '@/presentation/controllers/PresentationController';
 import { createPresentationRoutes } from '@/presentation/routes/presentationRoutes';
 
+// 参加者関連のインポート
+import { JoinPresentationUseCase } from '@/application/useCases/participant/JoinPresentationUseCase';
+import { GetPresentationByAccessCodeUseCase } from '@/application/useCases/participant/GetPresentationByAccessCodeUseCase';
+import { ParticipantController } from '@/presentation/controllers/ParticipantController';
+import { createParticipantRoutes } from '@/presentation/routes/participantRoutes';
+
 class NanoConnectServer {
   private app: express.Application;
   private httpServer: ReturnType<typeof createServer>;
@@ -98,6 +104,9 @@ class NanoConnectServer {
   private setupRoutes(): void {
     // プレゼンテーションAPIルートの設定
     this.setupPresentationRoutes();
+
+    // 参加者APIルートの設定
+    this.setupParticipantRoutes();
 
     // スライドAPI（メインAPI）
     this.app.use('/api', slideRoutes);
@@ -187,6 +196,32 @@ class NanoConnectServer {
 
     // ルートの設定
     this.app.use('/api/presentations', createPresentationRoutes(presentationController));
+  }
+
+  /**
+   * 参加者APIルートの設定
+   */
+  private setupParticipantRoutes(): void {
+    // データベース接続
+    const dbConnection = SQLiteConnection.getInstance();
+
+    // リポジトリの初期化
+    const presentationRepository = new SQLitePresentationRepository(dbConnection);
+
+    // ユースケースの初期化
+    const joinPresentationUseCase = new JoinPresentationUseCase(presentationRepository);
+    const getPresentationByAccessCodeUseCase = new GetPresentationByAccessCodeUseCase(
+      presentationRepository
+    );
+
+    // コントローラーの初期化
+    const participantController = new ParticipantController(
+      joinPresentationUseCase,
+      getPresentationByAccessCodeUseCase
+    );
+
+    // ルートの設定
+    this.app.use('/api', createParticipantRoutes(participantController));
   }
 
   /**
